@@ -12,6 +12,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.penguinstudios.tradeguardian.databinding.CreatePasswordFragmentBinding
@@ -19,12 +20,13 @@ import com.penguinstudios.tradeguardian.ui.createwallet.password.PasswordStrengt
 import com.penguinstudios.tradeguardian.ui.createwallet.viewmodel.CreateWalletUIState
 import com.penguinstudios.tradeguardian.ui.createwallet.viewmodel.CreateWalletViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class CreatePasswordFragment : Fragment() {
 
     private lateinit var binding: CreatePasswordFragmentBinding
-    private lateinit var viewModel: CreateWalletViewModel
+    private val viewModel: CreateWalletViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -38,8 +40,7 @@ class CreatePasswordFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel = ViewModelProvider(requireParentFragment())[CreateWalletViewModel::class.java]
-        lifecycleScope.launchWhenStarted {
+        lifecycleScope.launch {
             viewModel.uiState.collect { uiState ->
                 when (uiState) {
                     is CreateWalletUIState.UpdatePasswordStrength -> {

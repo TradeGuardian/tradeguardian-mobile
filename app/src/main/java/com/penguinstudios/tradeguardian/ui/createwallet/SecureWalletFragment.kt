@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import com.penguinstudios.tradeguardian.databinding.SecureWalletFragmentBinding
@@ -24,7 +25,7 @@ class SecureWalletFragment : Fragment() {
     }
 
     private lateinit var binding: SecureWalletFragmentBinding
-    private lateinit var viewModel: CreateWalletViewModel
+    private val viewModel: CreateWalletViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -37,7 +38,6 @@ class SecureWalletFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel = ViewModelProvider(requireParentFragment())[CreateWalletViewModel::class.java]
         setupRecyclerView()
         setupButtons()
     }

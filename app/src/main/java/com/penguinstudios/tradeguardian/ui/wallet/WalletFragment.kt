@@ -7,22 +7,21 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.penguinstudios.tradeguardian.R
 import com.penguinstudios.tradeguardian.data.model.Network
 import com.penguinstudios.tradeguardian.databinding.LayoutSpinnerBinding
 import com.penguinstudios.tradeguardian.databinding.WalletFragmentBinding
-import com.penguinstudios.tradeguardian.ui.createwallet.viewmodel.CreateWalletUIState
-import com.penguinstudios.tradeguardian.ui.createwallet.viewmodel.CreateWalletViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class WalletFragment : Fragment() {
 
     private lateinit var binding: WalletFragmentBinding
     private lateinit var spinnerBinding: LayoutSpinnerBinding
-    private lateinit var viewModel: WalletViewModel
+    private val viewModel: WalletViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -38,9 +37,27 @@ class WalletFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         initNetworkSpinner()
 
-        viewModel = ViewModelProvider(this)[WalletViewModel::class.java]
-        lifecycleScope.launchWhenStarted {
+        binding.swipeRefreshLayout.setOnRefreshListener {
+            viewModel.getWalletBalance()
+        }
 
+        lifecycleScope.launch {
+            viewModel.uiState.collect { uiState ->
+                when (uiState) {
+                    is WalletUIState.SuccessGetBalance -> {
+                        binding.layoutWalletBalance.tvWalletAddress.text = uiState.walletAddress
+                        binding.layoutWalletBalance.tvWalletBalance.text = uiState.walletBalance
+                        binding.layoutWalletBalance.root.visibility = View.VISIBLE
+                        binding.layoutProgressWalletBalance.root.visibility = View.INVISIBLE
+                        binding.swipeRefreshLayout.isRefreshing = false
+                    }
+
+                    is WalletUIState.Error -> {
+                        binding.swipeRefreshLayout.isRefreshing = false
+                        Toast.makeText(requireContext(), uiState.message, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
         }
     }
 

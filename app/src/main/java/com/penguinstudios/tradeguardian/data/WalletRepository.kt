@@ -47,7 +47,7 @@ class WalletRepository @Inject constructor(
         password.isSameAs(confirmPassword)
     }
 
-    fun validateMnemonicInput(mnemonic: String){
+    fun validateMnemonicInput(mnemonic: String) {
         mnemonic.isValidMnemonic()
     }
 
@@ -76,5 +76,9 @@ class WalletRepository @Inject constructor(
 
         mnemonicList = wallet.mnemonic.split(" ").toMutableList()
         shuffledMnemonicList = mnemonicList.shuffled().toMutableList()
+    }
+
+    fun mockWalletAddress(): String {
+        return "0xEAaA2542CdB884fb279507Bb73b52095Aa4685A9"
     }
 }

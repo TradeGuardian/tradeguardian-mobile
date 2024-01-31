@@ -5,10 +5,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
-import com.penguinstudios.tradeguardian.ui.createwallet.viewmodel.CreateWalletViewModel.Companion.NUM_WORDS_MNEMONIC
 import com.penguinstudios.tradeguardian.R
 import com.penguinstudios.tradeguardian.databinding.ConfirmMnemonicFragmentBinding
 import com.penguinstudios.tradeguardian.ui.createwallet.adapters.AvailableWordsAdapter
@@ -17,7 +16,9 @@ import com.penguinstudios.tradeguardian.ui.createwallet.util.MnemonicItemDecorat
 import com.penguinstudios.tradeguardian.ui.createwallet.util.SpacingUtil
 import com.penguinstudios.tradeguardian.ui.createwallet.viewmodel.CreateWalletUIState
 import com.penguinstudios.tradeguardian.ui.createwallet.viewmodel.CreateWalletViewModel
+import com.penguinstudios.tradeguardian.ui.createwallet.viewmodel.CreateWalletViewModel.Companion.NUM_WORDS_MNEMONIC
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class ConfirmMnemonicFragment : Fragment(), SelectedWordsAdapter.Callback,
@@ -30,9 +31,9 @@ class ConfirmMnemonicFragment : Fragment(), SelectedWordsAdapter.Callback,
     }
 
     private lateinit var binding: ConfirmMnemonicFragmentBinding
-    private lateinit var viewModel: CreateWalletViewModel
     private lateinit var selectedWordsAdapter: SelectedWordsAdapter
     private lateinit var availableWordsAdapter: AvailableWordsAdapter
+    private val viewModel: CreateWalletViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -45,14 +46,13 @@ class ConfirmMnemonicFragment : Fragment(), SelectedWordsAdapter.Callback,
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel = ViewModelProvider(requireParentFragment())[CreateWalletViewModel::class.java]
         setupRecyclerViews()
 
         binding.btnCompleteBackup.setOnClickListener {
             viewModel.onCompleteBackup()
         }
 
-        lifecycleScope.launchWhenStarted {
+        lifecycleScope.launch {
             viewModel.uiState.collect { uiState ->
                 when (uiState) {
                     is CreateWalletUIState.UpdateSelectedWordsAdapter -> {

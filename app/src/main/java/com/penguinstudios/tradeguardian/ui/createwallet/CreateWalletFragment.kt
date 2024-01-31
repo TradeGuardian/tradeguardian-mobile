@@ -3,13 +3,12 @@ package com.penguinstudios.tradeguardian.ui.createwallet
 import android.app.Dialog
 import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.penguinstudios.tradeguardian.R
@@ -19,12 +18,13 @@ import com.penguinstudios.tradeguardian.ui.createwallet.adapters.CreateWalletPag
 import com.penguinstudios.tradeguardian.ui.createwallet.viewmodel.CreateWalletUIState
 import com.penguinstudios.tradeguardian.ui.createwallet.viewmodel.CreateWalletViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class CreateWalletFragment : DialogFragment() {
 
     private lateinit var binding: CreateWalletFragmentBinding
-    private lateinit var viewModel: CreateWalletViewModel
+    private val viewModel: CreateWalletViewModel by viewModels()
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         setStyle(STYLE_NORMAL, R.style.Theme_TradeGuardian)
@@ -50,11 +50,9 @@ class CreateWalletFragment : DialogFragment() {
         }
 
         binding.stepIndicatorView.setActiveStep(0)
-
         binding.viewpager2.adapter = CreateWalletPagerAdapter(this)
 
-        viewModel = ViewModelProvider(this).get(CreateWalletViewModel::class.java)
-        lifecycleScope.launchWhenStarted {
+        lifecycleScope.launch {
             viewModel.uiState.collect { uiState ->
                 when (uiState) {
                     is CreateWalletUIState.SuccessCreateWallet -> {

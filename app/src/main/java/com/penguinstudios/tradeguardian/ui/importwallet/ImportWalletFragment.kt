@@ -4,8 +4,6 @@ import android.app.Dialog
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.text.Editable
 import android.text.SpannableString
 import android.text.Spanned
@@ -16,21 +14,21 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.penguinstudios.tradeguardian.R
 import com.penguinstudios.tradeguardian.databinding.ImportFragmentBinding
 import com.penguinstudios.tradeguardian.ui.MainActivity
 import com.penguinstudios.tradeguardian.ui.createwallet.password.PasswordStrength
-import com.penguinstudios.tradeguardian.ui.createwallet.viewmodel.CreateWalletUIState
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class ImportWalletFragment : DialogFragment() {
 
     private lateinit var binding: ImportFragmentBinding
-    private lateinit var viewModel: ImportWalletViewModel
+    private val viewModel: ImportWalletViewModel by viewModels()
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         setStyle(STYLE_NORMAL, R.style.Theme_TradeGuardian)
@@ -77,8 +75,7 @@ class ImportWalletFragment : DialogFragment() {
             override fun afterTextChanged(s: Editable) {}
         })
 
-        viewModel = ViewModelProvider(this)[ImportWalletViewModel::class.java]
-        lifecycleScope.launchWhenStarted {
+        lifecycleScope.launch {
             viewModel.uiState.collect { uiState ->
                 when (uiState) {
                     is ImportWalletUIState.SuccessImportWallet -> {
