@@ -1,4 +1,4 @@
-package com.penguinstudios.tradeguardian.ui
+package com.penguinstudios.tradeguardian.ui.createwallet.view
 
 import android.content.Context
 import android.graphics.Canvas

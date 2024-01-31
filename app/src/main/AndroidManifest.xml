@@ -34,11 +34,11 @@
 
         </activity>
 
-        <activity android:name=".ui.WelcomeBackActivity"
+        <activity android:name=".ui.welcomeback.WelcomeBackActivity"
             android:exported="true">
         </activity>
 
-        <activity android:name=".ui.createwallet.WalletSetupActivity"
+        <activity android:name=".ui.WalletSetupActivity"
             android:exported="true">
         </activity>
 

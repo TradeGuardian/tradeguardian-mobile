@@ -1,7 +1,11 @@
-package com.penguinstudios.tradeguardian.ui.createwallet
+package com.penguinstudios.tradeguardian.ui.importwallet
 
+import android.app.Dialog
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.text.Editable
 import android.text.SpannableString
 import android.text.Spanned
@@ -11,61 +15,49 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.fragment.app.Fragment
+import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import com.penguinstudios.tradeguardian.databinding.CreatePasswordFragmentBinding
+import com.penguinstudios.tradeguardian.R
+import com.penguinstudios.tradeguardian.databinding.ImportFragmentBinding
+import com.penguinstudios.tradeguardian.ui.MainActivity
 import com.penguinstudios.tradeguardian.ui.createwallet.password.PasswordStrength
 import com.penguinstudios.tradeguardian.ui.createwallet.viewmodel.CreateWalletUIState
-import com.penguinstudios.tradeguardian.ui.createwallet.viewmodel.CreateWalletViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 
 @AndroidEntryPoint
-class CreatePasswordFragment : Fragment() {
+class ImportWalletFragment : DialogFragment() {
 
-    private lateinit var binding: CreatePasswordFragmentBinding
-    private lateinit var viewModel: CreateWalletViewModel
+    private lateinit var binding: ImportFragmentBinding
+    private lateinit var viewModel: ImportWalletViewModel
+
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        setStyle(STYLE_NORMAL, R.style.Theme_TradeGuardian)
+        val dialog = super.onCreateDialog(savedInstanceState)
+        dialog.window?.attributes?.windowAnimations = R.style.FragmentSlideUpAnim
+        return dialog
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = CreatePasswordFragmentBinding.inflate(inflater, container, false)
+        binding = ImportFragmentBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel = ViewModelProvider(requireParentFragment())[CreateWalletViewModel::class.java]
-        lifecycleScope.launchWhenStarted {
-            viewModel.uiState.collect { uiState ->
-                when (uiState) {
-                    is CreateWalletUIState.UpdatePasswordStrength -> {
-                        binding.tvPasswordStrength.visibility = View.VISIBLE
-                        updatePasswordStrength(uiState.strength)
-                    }
-
-                    is CreateWalletUIState.ValidPassword -> {
-                        if (binding.checkboxConfirm.isChecked) {
-                            viewModel.createPassword()
-                        } else {
-                            Toast.makeText(
-                                requireContext(),
-                                "Must agree to terms.",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    }
-
-                    else -> {}
-                }
-            }
+        binding.btnBack.setOnClickListener {
+            dismiss()
         }
 
-        binding.btnCreatePassword.setOnClickListener {
-            viewModel.onCreatePasswordClick(
+        binding.btnImport.setOnClickListener {
+            viewModel.onImportBtnClick(
+                binding.etSecretPhrase.text.toString(),
                 binding.etNewPassword.text.toString(),
                 binding.etConfirmPassword.text.toString()
             )
@@ -84,6 +76,29 @@ class CreatePasswordFragment : Fragment() {
 
             override fun afterTextChanged(s: Editable) {}
         })
+
+        viewModel = ViewModelProvider(this)[ImportWalletViewModel::class.java]
+        lifecycleScope.launchWhenStarted {
+            viewModel.uiState.collect { uiState ->
+                when (uiState) {
+                    is ImportWalletUIState.SuccessImportWallet -> {
+                        val intent = Intent(requireActivity(), MainActivity::class.java)
+                        startActivity(intent)
+                        requireActivity().finish()
+                    }
+
+                    is ImportWalletUIState.UpdatePasswordStrength -> {
+                        binding.tvPasswordStrength.visibility = View.VISIBLE
+                        updatePasswordStrength(uiState.strength)
+                    }
+
+                    is ImportWalletUIState.Error -> {
+                        Toast.makeText(requireContext(), uiState.message, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+
     }
 
     private fun updatePasswordStrength(strength: PasswordStrength) {

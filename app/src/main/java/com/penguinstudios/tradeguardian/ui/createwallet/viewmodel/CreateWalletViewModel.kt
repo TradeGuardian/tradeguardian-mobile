@@ -35,9 +35,9 @@ class CreateWalletViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    walletRepository.password?.let {
+                    walletRepository.password.let {
                         walletRepository.createWallet(it, filesDir)
-                    } ?: throw IllegalStateException("Expected non-null value for password")
+                    }
                 }
                 _uiState.emit(CreateWalletUIState.SuccessCreateWallet)
             } catch (e: Exception) {
@@ -50,7 +50,8 @@ class CreateWalletViewModel @Inject constructor(
     fun onCreatePasswordClick(password: String, confirmPassword: String) {
         viewModelScope.launch {
             try {
-                walletRepository.isValidUserInput(password, confirmPassword)
+                walletRepository.validateUserPasswordInput(password, confirmPassword)
+                walletRepository.password = password
                 _uiState.emit(CreateWalletUIState.ValidPassword)
             } catch (e: Exception) {
                 Timber.e(e)
@@ -151,14 +152,10 @@ class CreateWalletViewModel @Inject constructor(
 
             if (selectedWordsMap.size == NUM_WORDS_MNEMONIC) {
                 //All words have been entered
-                walletRepository.mnemonic?.let { mnemonic ->
-                    if (isEnteredMnemonicCorrect(mnemonic, selectedWordsMap)) {
-                        _uiState.emit(CreateWalletUIState.CorrectMnemonicEntered)
-                    } else {
-                        _uiState.emit(CreateWalletUIState.IncorrectMnemonicEntered)
-                    }
-                } ?: run {
-                    throw IllegalStateException("Mnemonic is required but was null")
+                if (isEnteredMnemonicCorrect(walletRepository.mnemonic, selectedWordsMap)) {
+                    _uiState.emit(CreateWalletUIState.CorrectMnemonicEntered)
+                } else {
+                    _uiState.emit(CreateWalletUIState.IncorrectMnemonicEntered)
                 }
             }
         }
@@ -170,9 +167,9 @@ class CreateWalletViewModel @Inject constructor(
         }
     }
 
-    fun onNewPasswordTextChange(s: CharSequence) {
+    fun onNewPasswordTextChange(s: String) {
         viewModelScope.launch {
-            val strength = PasswordStrengthEvaluator.evaluatePasswordStrength(s.toString())
+            val strength = PasswordStrengthEvaluator.evaluatePasswordStrength(s)
             _uiState.emit(CreateWalletUIState.UpdatePasswordStrength(strength))
         }
     }

@@ -1,9 +1,12 @@
-package com.penguinstudios.tradeguardian.ui.createwallet
+package com.penguinstudios.tradeguardian.ui
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.penguinstudios.tradeguardian.databinding.WalletSetupActivityBinding
+import com.penguinstudios.tradeguardian.ui.createwallet.CreateWalletFragment
+import com.penguinstudios.tradeguardian.ui.importwallet.ImportWalletFragment
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 
 @AndroidEntryPoint
 class WalletSetupActivity : AppCompatActivity() {
@@ -18,6 +21,10 @@ class WalletSetupActivity : AppCompatActivity() {
 
         binding.btnCreateWallet.setOnClickListener {
             CreateWalletFragment().show(supportFragmentManager, null)
+        }
+
+        binding.btnImport.setOnClickListener {
+            ImportWalletFragment().show(supportFragmentManager, null)
         }
     }
 }

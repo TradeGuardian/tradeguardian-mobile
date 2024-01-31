@@ -54,7 +54,7 @@
 
     </androidx.appcompat.widget.Toolbar>
 
-    <com.penguinstudios.tradeguardian.ui.StepIndicatorView
+    <com.penguinstudios.tradeguardian.ui.createwallet.view.StepIndicatorView
         android:id="@+id/step_indicator_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

@@ -3,6 +3,8 @@ package com.penguinstudios.tradeguardian.ui.createwallet
 import android.app.Dialog
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -70,9 +72,9 @@ class CreateWalletFragment : DialogFragment() {
                     }
 
                     is CreateWalletUIState.CompleteBackup -> {
-                        dismiss()
                         val intent = Intent(requireActivity(), MainActivity::class.java)
                         startActivity(intent)
+                        requireActivity().finish()
                     }
 
                     else -> {}
