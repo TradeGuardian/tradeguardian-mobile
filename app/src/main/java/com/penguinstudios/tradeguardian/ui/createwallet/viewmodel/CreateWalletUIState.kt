@@ -12,7 +12,7 @@ sealed interface CreateWalletUIState {
     object CorrectMnemonicEntered : CreateWalletUIState
     object IncorrectMnemonicEntered : CreateWalletUIState
     object CompleteBackup : CreateWalletUIState
-    object ValidPassword : CreateWalletUIState
+    data class ValidPassword(val password: String) : CreateWalletUIState
     data class UpdatePasswordStrength(val strength: PasswordStrength) : CreateWalletUIState
     data class Error(val message: String) : CreateWalletUIState
 }

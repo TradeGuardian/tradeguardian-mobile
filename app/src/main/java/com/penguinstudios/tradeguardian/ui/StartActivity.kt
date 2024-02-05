@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.penguinstudios.tradeguardian.data.SharedPrefManager
+import com.penguinstudios.tradeguardian.ui.welcomeback.WelcomeBackActivity
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import javax.inject.Inject
@@ -20,13 +21,14 @@ class StartActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         val intent = if (sharedPrefManager.walletName != null) {
-            //Intent(this, WelcomeBackActivity::class.java)
+            Intent(this, WelcomeBackActivity::class.java)
             //Intent(this, WalletSetupActivity::class.java)
-            Intent(this, MainActivity::class.java)
+            //Intent(this, MainActivity::class.java)
         } else {
             Intent(this, WalletSetupActivity::class.java)
         }
 
         startActivity(intent)
+        finish()
     }
 }

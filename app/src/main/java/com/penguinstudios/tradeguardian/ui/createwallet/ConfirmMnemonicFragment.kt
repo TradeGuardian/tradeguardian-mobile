@@ -33,7 +33,7 @@ class ConfirmMnemonicFragment : Fragment(), SelectedWordsAdapter.Callback,
     private lateinit var binding: ConfirmMnemonicFragmentBinding
     private lateinit var selectedWordsAdapter: SelectedWordsAdapter
     private lateinit var availableWordsAdapter: AvailableWordsAdapter
-    private val viewModel: CreateWalletViewModel by viewModels()
+    private val viewModel: CreateWalletViewModel by viewModels({requireParentFragment()})
 
     override fun onCreateView(
         inflater: LayoutInflater,

@@ -31,13 +31,11 @@ class CreateWalletViewModel @Inject constructor(
     val selectedWordsMap: MutableMap<Int, String> = TreeMap()
     private var nextWordIndex = 0;
 
-    fun createPassword() {
+    fun createPassword(password: String) {
         viewModelScope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    walletRepository.password.let {
-                        walletRepository.createWallet(it, filesDir)
-                    }
+                    walletRepository.createWallet(password, filesDir)
                 }
                 _uiState.emit(CreateWalletUIState.SuccessCreateWallet)
             } catch (e: Exception) {
@@ -51,8 +49,7 @@ class CreateWalletViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 walletRepository.validateUserPasswordInput(password, confirmPassword)
-                walletRepository.password = password
-                _uiState.emit(CreateWalletUIState.ValidPassword)
+                _uiState.emit(CreateWalletUIState.ValidPassword(password))
             } catch (e: Exception) {
                 Timber.e(e)
                 _uiState.emit(CreateWalletUIState.Error(e.message.toString()))
@@ -130,10 +127,6 @@ class CreateWalletViewModel @Inject constructor(
         return ALL_MNEMONIC_SPACES_FILLED
     }
 
-    private fun isEnteredMnemonicCorrect(mnemonic: String, map: Map<Int, String>): Boolean {
-        return mnemonic == map.values.joinToString(separator = " ")
-    }
-
     fun onAvailableWordClick(adapterPosition: Int) {
         viewModelScope.launch {
             val shuffledMnemonicList = walletRepository.shuffledMnemonicList
@@ -152,13 +145,17 @@ class CreateWalletViewModel @Inject constructor(
 
             if (selectedWordsMap.size == NUM_WORDS_MNEMONIC) {
                 //All words have been entered
-                if (isEnteredMnemonicCorrect(walletRepository.mnemonic, selectedWordsMap)) {
+                if (isEnteredMnemonicCorrect(walletRepository.getMnemonic(), selectedWordsMap)) {
                     _uiState.emit(CreateWalletUIState.CorrectMnemonicEntered)
                 } else {
                     _uiState.emit(CreateWalletUIState.IncorrectMnemonicEntered)
                 }
             }
         }
+    }
+
+    private fun isEnteredMnemonicCorrect(mnemonic: String, map: Map<Int, String>): Boolean {
+        return mnemonic == map.values.joinToString(separator = " ")
     }
 
     fun onCompleteBackup() {
@@ -172,5 +169,10 @@ class CreateWalletViewModel @Inject constructor(
             val strength = PasswordStrengthEvaluator.evaluatePasswordStrength(s)
             _uiState.emit(CreateWalletUIState.UpdatePasswordStrength(strength))
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        walletRepository.clearSensitiveInformation()
     }
 }

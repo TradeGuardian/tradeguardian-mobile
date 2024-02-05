@@ -14,7 +14,6 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: MainActivityBinding
-
     private val tradesFragment by lazy { TradesFragment() }
     private val createTradeFragment by lazy { CreateTradeFragment() }
     private val walletFragment by lazy { WalletFragment() }

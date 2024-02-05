@@ -25,7 +25,7 @@ class SecureWalletFragment : Fragment() {
     }
 
     private lateinit var binding: SecureWalletFragmentBinding
-    private val viewModel: CreateWalletViewModel by viewModels()
+    private val viewModel: CreateWalletViewModel by viewModels({requireParentFragment()})
 
     override fun onCreateView(
         inflater: LayoutInflater,

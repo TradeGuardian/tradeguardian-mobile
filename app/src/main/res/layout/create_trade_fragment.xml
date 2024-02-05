@@ -103,7 +103,7 @@
             app:layout_constraintTop_toBottomOf="@+id/layout_spinner" />
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/til_other_party_wallet_address"
+            android:id="@+id/til_count_party_address"
             style="@style/My.TextInputLayout.FilledBox.Padding"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
@@ -129,7 +129,7 @@
             app:layout_constraintTop_toBottomOf="@+id/tv_other_party_wallet_address">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/et_other_party_wallet_address"
+                android:id="@+id/et_counter_party_address"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 android:fontFamily="@font/poppins_regular"
@@ -154,7 +154,7 @@
             android:text="Item Price"
             android:textColor="@color/white"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/til_other_party_wallet_address" />
+            app:layout_constraintTop_toBottomOf="@+id/til_count_party_address" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/til_item_price"

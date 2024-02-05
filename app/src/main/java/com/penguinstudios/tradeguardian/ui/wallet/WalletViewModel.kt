@@ -35,7 +35,6 @@ class WalletViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    Timber.d("Fired")
                     val balanceResponse = withTimeout(15000L) {
                         remoteRepository.getWalletBalance()
                     }
@@ -43,7 +42,7 @@ class WalletViewModel @Inject constructor(
                     Timber.d("Formatted wallet balance: " + formattedWalletBalance)
                     _uiState.emit(
                         WalletUIState.SuccessGetBalance(
-                            walletRepository.mockWalletAddress(), formattedWalletBalance
+                            walletRepository.credentials.address, formattedWalletBalance
                         )
                     )
                 }

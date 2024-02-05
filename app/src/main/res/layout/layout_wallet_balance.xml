@@ -40,7 +40,6 @@
         android:gravity="center_vertical"
         android:text="--"
         android:textColor="@color/white"
-        android:textSize="16sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/btn_wallet_more_options"
         app:layout_constraintStart_toEndOf="@id/iv_static_token_logo"

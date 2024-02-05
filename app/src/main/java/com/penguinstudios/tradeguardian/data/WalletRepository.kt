@@ -8,10 +8,12 @@ import org.web3j.crypto.Bip32ECKeyPair
 import org.web3j.crypto.Bip39Wallet
 import org.web3j.crypto.CipherException
 import org.web3j.crypto.Credentials
+import org.web3j.crypto.ECKeyPair
 import org.web3j.crypto.WalletUtils
 import timber.log.Timber
 import java.io.File
 import java.io.IOException
+import java.math.BigInteger
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -21,8 +23,6 @@ class WalletRepository @Inject constructor(
 ) {
 
     lateinit var credentials: Credentials
-    lateinit var password: String
-    lateinit var mnemonic: String
     var mnemonicList: MutableList<String> = mutableListOf()
     var shuffledMnemonicList: MutableList<String> = mutableListOf()
 
@@ -62,23 +62,33 @@ class WalletRepository @Inject constructor(
         sharedPrefManager.walletName = walletFileName
     }
 
+    fun unlockWallet(password: String, filesDirectory: File){
+        val credentials = WalletUtils.loadCredentials(password, filesDirectory)
+        this.credentials = credentials
+    }
+
     fun createWallet(password: String, filesDirectory: File) {
         val wallet = generateWallet(password, filesDirectory)
-        this.mnemonic = wallet.mnemonic
-
-        val derivedKeyPair: Bip32ECKeyPair = WalletUtil.deriveKeyPairFromMnemonic(mnemonic)
+        val derivedKeyPair = WalletUtil.deriveKeyPairFromMnemonic(wallet.mnemonic)
         this.credentials = Credentials.create(derivedKeyPair)
 
         sharedPrefManager.walletName = wallet.filename
 
-        Timber.d("Mnemonic: " + mnemonic)
+        Timber.d("Mnemonic: " + wallet.mnemonic)
         Timber.d("Public key: " + credentials.address)
 
         mnemonicList = wallet.mnemonic.split(" ").toMutableList()
         shuffledMnemonicList = mnemonicList.shuffled().toMutableList()
     }
 
-    fun mockWalletAddress(): String {
-        return "0xEAaA2542CdB884fb279507Bb73b52095Aa4685A9"
+    fun getMnemonic(): String {
+        return mnemonicList.joinToString(separator = " ")
+    }
+
+    fun clearSensitiveInformation(){
+        sharedPrefManager.walletName = null
+        mnemonicList.clear()
+        shuffledMnemonicList.clear()
+        credentials = Credentials.create(ECKeyPair(BigInteger.ZERO, BigInteger.ZERO))
     }
 }

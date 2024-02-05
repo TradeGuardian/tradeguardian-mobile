@@ -4,16 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.penguinstudios.tradeguardian.data.PasswordStrengthEvaluator
 import com.penguinstudios.tradeguardian.data.WalletRepository
-import com.penguinstudios.tradeguardian.ui.createwallet.viewmodel.CreateWalletUIState
-import com.penguinstudios.tradeguardian.util.WalletUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.web3j.crypto.Credentials
-import org.web3j.crypto.WalletUtils
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
@@ -30,10 +26,11 @@ class ImportWalletViewModel @Inject constructor(
     fun onImportBtnClick(mnemonic: String, newPassword: String, confirmPassword: String) {
         viewModelScope.launch {
             try {
-                walletRepository.validateMnemonicInput(mnemonic)
-                walletRepository.validateUserPasswordInput(newPassword, confirmPassword)
-                walletRepository.password = newPassword
-                walletRepository.importWallet(mnemonic, newPassword, filesDir)
+                withContext(Dispatchers.IO) {
+                    walletRepository.validateMnemonicInput(mnemonic)
+                    walletRepository.validateUserPasswordInput(newPassword, confirmPassword)
+                    walletRepository.importWallet(mnemonic, newPassword, filesDir)
+                }
                 _uiState.emit(ImportWalletUIState.SuccessImportWallet)
             } catch (e: Exception) {
                 Timber.e(e)
@@ -48,6 +45,4 @@ class ImportWalletViewModel @Inject constructor(
             _uiState.emit(ImportWalletUIState.UpdatePasswordStrength(strength))
         }
     }
-
-
 }

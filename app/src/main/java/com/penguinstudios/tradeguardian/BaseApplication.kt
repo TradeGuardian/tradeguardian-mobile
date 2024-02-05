@@ -1,9 +1,14 @@
 package com.penguinstudios.tradeguardian
 
 import android.app.Application
+import android.provider.SyncStateContract
+import com.penguinstudios.tradeguardian.contract.Escrow
+import com.penguinstudios.tradeguardian.util.AssetUtil
+import com.penguinstudios.tradeguardian.util.Constants
 import dagger.hilt.android.HiltAndroidApp
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import timber.log.Timber
+import java.io.IOException
 import java.security.Security
 
 @HiltAndroidApp
@@ -17,6 +22,12 @@ class BaseApplication : Application() {
         }
 
         setupBouncyCastle()
+
+        try {
+            Escrow.loadContract(AssetUtil.getContractBin(this, Constants.CONTRACT_BIN))
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
     }
 
     companion object {

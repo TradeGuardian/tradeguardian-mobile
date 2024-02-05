@@ -1,7 +1,6 @@
 package com.penguinstudios.tradeguardian.data.model
 
 import com.penguinstudios.tradeguardian.data.WalletRepository
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.future.await
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.core.DefaultBlockParameterName
@@ -17,18 +16,8 @@ class RemoteRepository @Inject constructor(
 
     suspend fun getWalletBalance(): EthGetBalance {
         return web3j.ethGetBalance(
-            //walletRepository.credentials.address,
-            walletRepository.mockWalletAddress(),
+            walletRepository.credentials.address,
             DefaultBlockParameterName.LATEST
         ).sendAsync().await()
-    }
-
-    suspend fun mockGetWalletBalanceError(): EthGetBalance {
-        throw Exception("Mock error")
-    }
-
-    suspend fun mockTimeOut(): EthGetBalance {
-        delay(20000)
-        throw Exception("Mock error")
     }
 }
