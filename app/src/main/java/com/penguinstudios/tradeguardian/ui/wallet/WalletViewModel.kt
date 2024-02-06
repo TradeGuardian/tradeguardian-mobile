@@ -31,21 +31,20 @@ class WalletViewModel @Inject constructor(
         getWalletBalance()
     }
 
-    fun getWalletBalance(){
+    fun getWalletBalance() {
         viewModelScope.launch {
             try {
-                withContext(Dispatchers.IO) {
+                val formattedWalletBalance = withContext(Dispatchers.IO) {
                     val balanceResponse = withTimeout(15000L) {
                         remoteRepository.getWalletBalance()
                     }
-                    val formattedWalletBalance = WalletUtil.formatBalance(balanceResponse.balance)
-                    Timber.d("Formatted wallet balance: " + formattedWalletBalance)
-                    _uiState.emit(
-                        WalletUIState.SuccessGetBalance(
-                            walletRepository.credentials.address, formattedWalletBalance
-                        )
-                    )
+                    WalletUtil.formatBalance(balanceResponse.balance)
                 }
+                _uiState.emit(
+                    WalletUIState.SuccessGetBalance(
+                        walletRepository.credentials.address, formattedWalletBalance
+                    )
+                )
             } catch (e: TimeoutCancellationException) {
                 Timber.e(e)
                 _uiState.emit(WalletUIState.Error("Request timed out: Failed to get wallet balance"))

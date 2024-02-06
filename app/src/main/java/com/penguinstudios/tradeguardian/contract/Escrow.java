@@ -13,6 +13,7 @@ import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Event;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.Type;
+import org.web3j.abi.datatypes.Utf8String;
 import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.abi.datatypes.generated.Uint8;
 import org.web3j.crypto.Credentials;
@@ -39,7 +40,6 @@ import org.web3j.tx.gas.ContractGasProvider;
  */
 @SuppressWarnings("rawtypes")
 public class Escrow extends Contract {
-
     public static String BINARY;
 
     public static void loadContract(String bin) {
@@ -55,6 +55,8 @@ public class Escrow extends Contract {
     public static final String FUNC_CURRENTSTATE = "currentState";
 
     public static final String FUNC_DEADLINEFORINITIALDEPOSITS = "deadlineForInitialDeposits";
+
+    public static final String FUNC_DESCRIPTION = "description";
 
     public static final String FUNC_FEERECIPIENT = "feeRecipient";
 
@@ -178,7 +180,6 @@ public class Escrow extends Contract {
         return responses;
     }
 
-
     public static CorrectItemReceivedEventResponse getCorrectItemReceivedEventFromLog(Log log) {
         EventValuesWithLog eventValues = staticExtractEventParametersWithLog(CORRECTITEMRECEIVED_EVENT, log);
         CorrectItemReceivedEventResponse typedResponse = new CorrectItemReceivedEventResponse();
@@ -218,7 +219,6 @@ public class Escrow extends Contract {
         return responses;
     }
 
-
     public static IncorrectItemReceivedEventResponse getIncorrectItemReceivedEventFromLog(Log log) {
         EventValuesWithLog eventValues = staticExtractEventParametersWithLog(INCORRECTITEMRECEIVED_EVENT, log);
         IncorrectItemReceivedEventResponse typedResponse = new IncorrectItemReceivedEventResponse();
@@ -254,7 +254,6 @@ public class Escrow extends Contract {
         return responses;
     }
 
-
     public static ItemSentEventResponse getItemSentEventFromLog(Log log) {
         EventValuesWithLog eventValues = staticExtractEventParametersWithLog(ITEMSENT_EVENT, log);
         ItemSentEventResponse typedResponse = new ItemSentEventResponse();
@@ -289,7 +288,6 @@ public class Escrow extends Contract {
         }
         return responses;
     }
-
 
     public static SellerDepositedEventResponse getSellerDepositedEventFromLog(Log log) {
         EventValuesWithLog eventValues = staticExtractEventParametersWithLog(SELLERDEPOSITED_EVENT, log);
@@ -329,7 +327,6 @@ public class Escrow extends Contract {
         return responses;
     }
 
-
     public static SettledEventResponse getSettledEventFromLog(Log log) {
         EventValuesWithLog eventValues = staticExtractEventParametersWithLog(SETTLED_EVENT, log);
         SettledEventResponse typedResponse = new SettledEventResponse();
@@ -367,7 +364,6 @@ public class Escrow extends Contract {
         }
         return responses;
     }
-
 
     public static TradeCanceledEventResponse getTradeCanceledEventFromLog(Log log) {
         EventValuesWithLog eventValues = staticExtractEventParametersWithLog(TRADECANCELED_EVENT, log);
@@ -422,6 +418,13 @@ public class Escrow extends Contract {
                 Arrays.<Type>asList(), 
                 Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {}));
         return executeRemoteCallSingleValueReturn(function, BigInteger.class);
+    }
+
+    public RemoteFunctionCall<String> description() {
+        final Function function = new Function(FUNC_DESCRIPTION, 
+                Arrays.<Type>asList(), 
+                Arrays.<TypeReference<?>>asList(new TypeReference<Utf8String>() {}));
+        return executeRemoteCallSingleValueReturn(function, String.class);
     }
 
     public RemoteFunctionCall<String> feeRecipient() {
@@ -518,37 +521,41 @@ public class Escrow extends Contract {
         return new Escrow(contractAddress, web3j, transactionManager, contractGasProvider);
     }
 
-    public static RemoteCall<Escrow> deploy(Web3j web3j, Credentials credentials, ContractGasProvider contractGasProvider, String _feeRecipient, String _seller, String _buyer, BigInteger _itemPrice) {
+    public static RemoteCall<Escrow> deploy(Web3j web3j, Credentials credentials, ContractGasProvider contractGasProvider, String _feeRecipient, String _seller, String _buyer, BigInteger _itemPrice, String _description) {
         String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new Address(160, _feeRecipient),
                 new Address(160, _seller),
                 new Address(160, _buyer),
-                new Uint256(_itemPrice)));
+                new Uint256(_itemPrice),
+                new Utf8String(_description)));
         return deployRemoteCall(Escrow.class, web3j, credentials, contractGasProvider, BINARY, encodedConstructor);
     }
 
-    public static RemoteCall<Escrow> deploy(Web3j web3j, TransactionManager transactionManager, ContractGasProvider contractGasProvider, String _feeRecipient, String _seller, String _buyer, BigInteger _itemPrice) {
+    public static RemoteCall<Escrow> deploy(Web3j web3j, TransactionManager transactionManager, ContractGasProvider contractGasProvider, String _feeRecipient, String _seller, String _buyer, BigInteger _itemPrice, String _description) {
         String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new Address(160, _feeRecipient),
                 new Address(160, _seller),
                 new Address(160, _buyer),
-                new Uint256(_itemPrice)));
+                new Uint256(_itemPrice),
+                new Utf8String(_description)));
         return deployRemoteCall(Escrow.class, web3j, transactionManager, contractGasProvider, BINARY, encodedConstructor);
     }
 
     @Deprecated
-    public static RemoteCall<Escrow> deploy(Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit, String _feeRecipient, String _seller, String _buyer, BigInteger _itemPrice) {
+    public static RemoteCall<Escrow> deploy(Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit, String _feeRecipient, String _seller, String _buyer, BigInteger _itemPrice, String _description) {
         String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new Address(160, _feeRecipient),
                 new Address(160, _seller),
                 new Address(160, _buyer),
-                new Uint256(_itemPrice)));
+                new Uint256(_itemPrice),
+                new Utf8String(_description)));
         return deployRemoteCall(Escrow.class, web3j, credentials, gasPrice, gasLimit, BINARY, encodedConstructor);
     }
 
     @Deprecated
-    public static RemoteCall<Escrow> deploy(Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit, String _feeRecipient, String _seller, String _buyer, BigInteger _itemPrice) {
+    public static RemoteCall<Escrow> deploy(Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit, String _feeRecipient, String _seller, String _buyer, BigInteger _itemPrice, String _description) {
         String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new Address(160, _feeRecipient),
                 new Address(160, _seller),
                 new Address(160, _buyer),
-                new Uint256(_itemPrice)));
+                new Uint256(_itemPrice),
+                new Utf8String(_description)));
         return deployRemoteCall(Escrow.class, web3j, transactionManager, gasPrice, gasLimit, BINARY, encodedConstructor);
     }
 

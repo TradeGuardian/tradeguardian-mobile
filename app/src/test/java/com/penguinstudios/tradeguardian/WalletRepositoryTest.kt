@@ -25,11 +25,6 @@ class WalletRepositoryTest {
         web3j = Mockito.mock(Web3j::class.java)
         sharedPrefManager = Mockito.mock(SharedPrefManager::class.java)
 
-        walletRepository = WalletRepository(web3j, sharedPrefManager)
-    }
-
-    @Test
-    fun `deriveKeyPairFromMnemonic returns same wallet address as generateWallet`() {
 
     }
 }

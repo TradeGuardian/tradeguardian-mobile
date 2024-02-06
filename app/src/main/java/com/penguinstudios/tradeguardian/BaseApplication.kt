@@ -1,7 +1,6 @@
 package com.penguinstudios.tradeguardian
 
 import android.app.Application
-import android.provider.SyncStateContract
 import com.penguinstudios.tradeguardian.contract.Escrow
 import com.penguinstudios.tradeguardian.util.AssetUtil
 import com.penguinstudios.tradeguardian.util.Constants
