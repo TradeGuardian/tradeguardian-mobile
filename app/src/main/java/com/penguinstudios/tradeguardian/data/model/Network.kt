@@ -15,7 +15,7 @@ enum class Network(
         "BNB Smart Chain Testnet",
         "BNB",
         97,
-        "https://testnet.bscscan.com/"
+        "https://testnet.bscscan.com/address/"
     ),
     MAIN_NET(
         2,
@@ -23,7 +23,7 @@ enum class Network(
         "BNB Smart Chain Mainnet",
         "BNB",
         56,
-        "https://bscscan.com/"
+        "https://bscscan.com/address/"
     );
 
     companion object {

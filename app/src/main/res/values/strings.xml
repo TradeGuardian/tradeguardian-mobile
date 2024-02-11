@@ -9,4 +9,5 @@
     <string name="you_can_only_recover">You can ONLY recover this wallet with your\nSecret Recovery Phrase TradeGuardian does\nnot have your Secret Recovery Phrase.</string>
     <string name="your_current_wallet">Your current wallet, accounts and assets\nwill be removed from this app permanently.\nThis action cannot be undone.</string>
     <string name="type_to_delete">Type\u00A0\u00A0\"delete\"\u00A0\u00A0to erase current\nwallet permanently</string>
+    <string name="view_on_bsc_scan">View on BSC Scan</string>
 </resources>

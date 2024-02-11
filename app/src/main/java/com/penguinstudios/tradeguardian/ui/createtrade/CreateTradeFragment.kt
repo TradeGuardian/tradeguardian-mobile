@@ -25,7 +25,7 @@ class CreateTradeFragment : Fragment() {
 
     private lateinit var binding: CreateTradeFragmentBinding
     private lateinit var spinnerBinding: LayoutSpinnerBinding
-    private val viewModel: CreateTradeViewModel by viewModels()
+    private val viewModel: CreateTradeViewModel by viewModels({ requireActivity() })
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -63,11 +63,20 @@ class CreateTradeFragment : Fragment() {
                 binding.etItemPrice.text.toString(),
                 binding.etDescription.text.toString()
             )
+
         }
 
         lifecycleScope.launch {
             viewModel.uiState.collect { uiState ->
                 when (uiState) {
+                    is CreateTradeUIState.SuccessDeployContract -> {
+                        binding.radioGroup.clearCheck()
+                        binding.etCounterPartyAddress.text?.clear()
+                        binding.etItemPrice.text?.clear()
+                        binding.etDescription.text?.clear()
+                        binding.parentLayout.clearFocus()
+                    }
+
                     is CreateTradeUIState.ConfirmContractDeployment -> {
                         ConfirmTradeFragment(uiState).show(
                             requireActivity().supportFragmentManager,
@@ -78,6 +87,7 @@ class CreateTradeFragment : Fragment() {
                     is CreateTradeUIState.Error -> {
                         Toast.makeText(requireContext(), uiState.message, Toast.LENGTH_SHORT).show()
                     }
+
                 }
             }
         }

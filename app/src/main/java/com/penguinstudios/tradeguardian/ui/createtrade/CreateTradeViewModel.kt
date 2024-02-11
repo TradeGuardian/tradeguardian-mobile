@@ -136,8 +136,13 @@ class CreateTradeViewModel @Inject constructor(
     fun onConfirmBtnClick() {
         viewModelScope.launch {
             try {
-                remoteRepository.deployContract(contractDeployment)
-
+                val txReceipt = remoteRepository.deployContract(contractDeployment)
+                _uiState.emit(
+                    CreateTradeUIState.SuccessDeployContract(
+                        txReceipt.transactionHash,
+                        txReceipt.contractAddress
+                    )
+                )
             } catch (e: Exception) {
                 Timber.e(e, "Failed to deploy contract")
                 _uiState.emit(CreateTradeUIState.Error(e.message.toString()))
