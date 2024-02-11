@@ -5,6 +5,8 @@ import org.web3j.crypto.MnemonicUtils
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.math.RoundingMode
+import java.text.NumberFormat
+import java.util.Locale
 
 object WalletUtil {
 
@@ -24,9 +26,13 @@ object WalletUtil {
         return Bip32ECKeyPair.deriveKeyPair(masterKeyPair, derivationPath)
     }
 
-    fun formatBalance(balance: BigInteger): String {
+    fun weiToEther(balance: BigInteger): BigDecimal {
         val divisor = BigDecimal.TEN.pow(18)
-        val result = BigDecimal(balance).divide(divisor, 5, RoundingMode.HALF_UP)
-        return "$result BNB"
+        return BigDecimal(balance).divide(divisor, 5, RoundingMode.HALF_UP)
+    }
+
+    fun formatToUSD(value: BigDecimal): String {
+        val format = NumberFormat.getCurrencyInstance(Locale.US)
+        return format.format(value)
     }
 }

@@ -1,11 +1,5 @@
 package com.penguinstudios.tradeguardian.contract;
 
-import io.reactivex.Flowable;
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import org.web3j.abi.EventEncoder;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.TypeReference;
@@ -29,11 +23,19 @@ import org.web3j.tx.Contract;
 import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
 
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import io.reactivex.Flowable;
+
 /**
  * <p>Auto generated code.
  * <p><strong>Do not modify!</strong>
  * <p>Please use the <a href="https://docs.web3j.io/command_line.html">web3j command line tools</a>,
- * or the org.web3j.codegen.SolidityFunctionWrapperGenerator in the 
+ * or the org.web3j.codegen.SolidityFunctionWrapperGenerator in the
  * <a href="https://github.com/web3j/web3j/tree/master/codegen">codegen module</a> to update.
  *
  * <p>Generated with web3j version 1.5.0.
@@ -78,32 +80,50 @@ public class Escrow extends Contract {
 
     public static final String FUNC_WITHDRAW = "withdraw";
 
-    public static final Event BUYERDEPOSITED_EVENT = new Event("BuyerDeposited", 
-            Arrays.<TypeReference<?>>asList(new TypeReference<Address>(true) {}, new TypeReference<Uint256>() {}));
+    public static final Event BUYERDEPOSITED_EVENT = new Event("BuyerDeposited",
+            Arrays.<TypeReference<?>>asList(new TypeReference<Address>(true) {
+            }, new TypeReference<Uint256>() {
+            }));
     ;
 
-    public static final Event CORRECTITEMRECEIVED_EVENT = new Event("CorrectItemReceived", 
-            Arrays.<TypeReference<?>>asList(new TypeReference<Address>(true) {}, new TypeReference<Address>(true) {}, new TypeReference<Uint256>() {}, new TypeReference<Uint256>() {}, new TypeReference<Uint256>() {}));
+    public static final Event CORRECTITEMRECEIVED_EVENT = new Event("CorrectItemReceived",
+            Arrays.<TypeReference<?>>asList(new TypeReference<Address>(true) {
+            }, new TypeReference<Address>(true) {
+            }, new TypeReference<Uint256>() {
+            }, new TypeReference<Uint256>() {
+            }, new TypeReference<Uint256>() {
+            }));
     ;
 
-    public static final Event INCORRECTITEMRECEIVED_EVENT = new Event("IncorrectItemReceived", 
-            Arrays.<TypeReference<?>>asList(new TypeReference<Address>(true) {}, new TypeReference<Uint256>() {}));
+    public static final Event INCORRECTITEMRECEIVED_EVENT = new Event("IncorrectItemReceived",
+            Arrays.<TypeReference<?>>asList(new TypeReference<Address>(true) {
+            }, new TypeReference<Uint256>() {
+            }));
     ;
 
-    public static final Event ITEMSENT_EVENT = new Event("ItemSent", 
-            Arrays.<TypeReference<?>>asList(new TypeReference<Address>(true) {}));
+    public static final Event ITEMSENT_EVENT = new Event("ItemSent",
+            Arrays.<TypeReference<?>>asList(new TypeReference<Address>(true) {
+            }));
     ;
 
-    public static final Event SELLERDEPOSITED_EVENT = new Event("SellerDeposited", 
-            Arrays.<TypeReference<?>>asList(new TypeReference<Address>(true) {}, new TypeReference<Uint256>() {}));
+    public static final Event SELLERDEPOSITED_EVENT = new Event("SellerDeposited",
+            Arrays.<TypeReference<?>>asList(new TypeReference<Address>(true) {
+            }, new TypeReference<Uint256>() {
+            }));
     ;
 
-    public static final Event SETTLED_EVENT = new Event("Settled", 
-            Arrays.<TypeReference<?>>asList(new TypeReference<Address>(true) {}, new TypeReference<Address>(true) {}, new TypeReference<Uint256>() {}, new TypeReference<Uint256>() {}));
+    public static final Event SETTLED_EVENT = new Event("Settled",
+            Arrays.<TypeReference<?>>asList(new TypeReference<Address>(true) {
+            }, new TypeReference<Address>(true) {
+            }, new TypeReference<Uint256>() {
+            }, new TypeReference<Uint256>() {
+            }));
     ;
 
-    public static final Event TRADECANCELED_EVENT = new Event("TradeCanceled", 
-            Arrays.<TypeReference<?>>asList(new TypeReference<Address>(true) {}, new TypeReference<Uint256>() {}));
+    public static final Event TRADECANCELED_EVENT = new Event("TradeCanceled",
+            Arrays.<TypeReference<?>>asList(new TypeReference<Address>(true) {
+            }, new TypeReference<Uint256>() {
+            }));
     ;
 
     @Deprecated
@@ -130,7 +150,7 @@ public class Escrow extends Contract {
 
         for (Log log : logs) {
             EventValuesWithLog eventValues = staticExtractEventParametersWithLog(BUYERDEPOSITED_EVENT, log);
-            if(eventValues == null) continue; // Skip if the log does not match the event signature
+            if (eventValues == null) continue; // Skip if the log does not match the event signature
 
             BuyerDepositedEventResponse typedResponse = new BuyerDepositedEventResponse();
             typedResponse.log = log;
@@ -166,7 +186,7 @@ public class Escrow extends Contract {
 
         for (Log log : logs) {
             EventValuesWithLog eventValues = staticExtractEventParametersWithLog(CORRECTITEMRECEIVED_EVENT, log);
-            if(eventValues == null) continue; // Skip if the log does not match the event signature
+            if (eventValues == null) continue; // Skip if the log does not match the event signature
 
             CorrectItemReceivedEventResponse typedResponse = new CorrectItemReceivedEventResponse();
             typedResponse.log = log;
@@ -208,7 +228,8 @@ public class Escrow extends Contract {
 
         for (Log log : logs) {
             EventValuesWithLog eventValues = staticExtractEventParametersWithLog(INCORRECTITEMRECEIVED_EVENT, log);
-            if(eventValues == null) continue; // If the log does not correspond to the event, skip it
+            if (eventValues == null)
+                continue; // If the log does not correspond to the event, skip it
 
             IncorrectItemReceivedEventResponse typedResponse = new IncorrectItemReceivedEventResponse();
             typedResponse.log = log;
@@ -244,7 +265,8 @@ public class Escrow extends Contract {
 
         for (Log log : logs) {
             EventValuesWithLog eventValues = staticExtractEventParametersWithLog(ITEMSENT_EVENT, log);
-            if(eventValues == null) continue; // If the log does not correspond to the ITEMSENT_EVENT, skip it
+            if (eventValues == null)
+                continue; // If the log does not correspond to the ITEMSENT_EVENT, skip it
 
             ItemSentEventResponse typedResponse = new ItemSentEventResponse();
             typedResponse.log = log; // Directly set the log from the iteration
@@ -278,7 +300,8 @@ public class Escrow extends Contract {
 
         for (Log log : logs) {
             EventValuesWithLog eventValues = staticExtractEventParametersWithLog(SELLERDEPOSITED_EVENT, log);
-            if(eventValues == null) continue; // Skip logs that don't match the SELLERDEPOSITED_EVENT
+            if (eventValues == null)
+                continue; // Skip logs that don't match the SELLERDEPOSITED_EVENT
 
             SellerDepositedEventResponse typedResponse = new SellerDepositedEventResponse();
             typedResponse.log = log;
@@ -314,7 +337,8 @@ public class Escrow extends Contract {
 
         for (Log log : logs) {
             EventValuesWithLog eventValues = staticExtractEventParametersWithLog(SETTLED_EVENT, log);
-            if(eventValues == null) continue; // Skip logs that do not correspond to the SETTLED_EVENT
+            if (eventValues == null)
+                continue; // Skip logs that do not correspond to the SETTLED_EVENT
 
             SettledEventResponse typedResponse = new SettledEventResponse();
             typedResponse.log = log;
@@ -354,7 +378,8 @@ public class Escrow extends Contract {
 
         for (Log log : logs) {
             EventValuesWithLog eventValues = staticExtractEventParametersWithLog(TRADECANCELED_EVENT, log);
-            if(eventValues == null) continue; // Skip logs that do not correspond to the TRADECANCELED_EVENT
+            if (eventValues == null)
+                continue; // Skip logs that do not correspond to the TRADECANCELED_EVENT
 
             TradeCanceledEventResponse typedResponse = new TradeCanceledEventResponse();
             typedResponse.log = log;
@@ -385,120 +410,129 @@ public class Escrow extends Contract {
     }
 
     public RemoteFunctionCall<String> buyer() {
-        final Function function = new Function(FUNC_BUYER, 
-                Arrays.<Type>asList(), 
-                Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
+        final Function function = new Function(FUNC_BUYER,
+                Arrays.<Type>asList(),
+                Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {
+                }));
         return executeRemoteCallSingleValueReturn(function, String.class);
     }
 
     public RemoteFunctionCall<TransactionReceipt> buyerDeposit(BigInteger weiValue) {
         final Function function = new Function(
-                FUNC_BUYERDEPOSIT, 
-                Arrays.<Type>asList(), 
+                FUNC_BUYERDEPOSIT,
+                Arrays.<Type>asList(),
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function, weiValue);
     }
 
     public RemoteFunctionCall<BigInteger> contractCreationDate() {
-        final Function function = new Function(FUNC_CONTRACTCREATIONDATE, 
-                Arrays.<Type>asList(), 
-                Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {}));
+        final Function function = new Function(FUNC_CONTRACTCREATIONDATE,
+                Arrays.<Type>asList(),
+                Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {
+                }));
         return executeRemoteCallSingleValueReturn(function, BigInteger.class);
     }
 
     public RemoteFunctionCall<BigInteger> currentState() {
-        final Function function = new Function(FUNC_CURRENTSTATE, 
-                Arrays.<Type>asList(), 
-                Arrays.<TypeReference<?>>asList(new TypeReference<Uint8>() {}));
+        final Function function = new Function(FUNC_CURRENTSTATE,
+                Arrays.<Type>asList(),
+                Arrays.<TypeReference<?>>asList(new TypeReference<Uint8>() {
+                }));
         return executeRemoteCallSingleValueReturn(function, BigInteger.class);
     }
 
     public RemoteFunctionCall<BigInteger> deadlineForInitialDeposits() {
-        final Function function = new Function(FUNC_DEADLINEFORINITIALDEPOSITS, 
-                Arrays.<Type>asList(), 
-                Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {}));
+        final Function function = new Function(FUNC_DEADLINEFORINITIALDEPOSITS,
+                Arrays.<Type>asList(),
+                Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {
+                }));
         return executeRemoteCallSingleValueReturn(function, BigInteger.class);
     }
 
     public RemoteFunctionCall<String> description() {
-        final Function function = new Function(FUNC_DESCRIPTION, 
-                Arrays.<Type>asList(), 
-                Arrays.<TypeReference<?>>asList(new TypeReference<Utf8String>() {}));
+        final Function function = new Function(FUNC_DESCRIPTION,
+                Arrays.<Type>asList(),
+                Arrays.<TypeReference<?>>asList(new TypeReference<Utf8String>() {
+                }));
         return executeRemoteCallSingleValueReturn(function, String.class);
     }
 
     public RemoteFunctionCall<String> feeRecipient() {
-        final Function function = new Function(FUNC_FEERECIPIENT, 
-                Arrays.<Type>asList(), 
-                Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
+        final Function function = new Function(FUNC_FEERECIPIENT,
+                Arrays.<Type>asList(),
+                Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {
+                }));
         return executeRemoteCallSingleValueReturn(function, String.class);
     }
 
     public RemoteFunctionCall<BigInteger> itemPrice() {
-        final Function function = new Function(FUNC_ITEMPRICE, 
-                Arrays.<Type>asList(), 
-                Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {}));
+        final Function function = new Function(FUNC_ITEMPRICE,
+                Arrays.<Type>asList(),
+                Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {
+                }));
         return executeRemoteCallSingleValueReturn(function, BigInteger.class);
     }
 
     public RemoteFunctionCall<String> seller() {
-        final Function function = new Function(FUNC_SELLER, 
-                Arrays.<Type>asList(), 
-                Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
+        final Function function = new Function(FUNC_SELLER,
+                Arrays.<Type>asList(),
+                Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {
+                }));
         return executeRemoteCallSingleValueReturn(function, String.class);
     }
 
     public RemoteFunctionCall<TransactionReceipt> sellerDeposit(BigInteger weiValue) {
         final Function function = new Function(
-                FUNC_SELLERDEPOSIT, 
-                Arrays.<Type>asList(), 
+                FUNC_SELLERDEPOSIT,
+                Arrays.<Type>asList(),
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function, weiValue);
     }
 
     public RemoteFunctionCall<TransactionReceipt> setBuyerHasReceivedCorrectItem() {
         final Function function = new Function(
-                FUNC_SETBUYERHASRECEIVEDCORRECTITEM, 
-                Arrays.<Type>asList(), 
+                FUNC_SETBUYERHASRECEIVEDCORRECTITEM,
+                Arrays.<Type>asList(),
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
 
     public RemoteFunctionCall<TransactionReceipt> setBuyerHasReceivedIncorrectItem() {
         final Function function = new Function(
-                FUNC_SETBUYERHASRECEIVEDINCORRECTITEM, 
-                Arrays.<Type>asList(), 
+                FUNC_SETBUYERHASRECEIVEDINCORRECTITEM,
+                Arrays.<Type>asList(),
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
 
     public RemoteFunctionCall<TransactionReceipt> setSellerHasGivenItem() {
         final Function function = new Function(
-                FUNC_SETSELLERHASGIVENITEM, 
-                Arrays.<Type>asList(), 
+                FUNC_SETSELLERHASGIVENITEM,
+                Arrays.<Type>asList(),
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
 
     public RemoteFunctionCall<TransactionReceipt> settle() {
         final Function function = new Function(
-                FUNC_SETTLE, 
-                Arrays.<Type>asList(), 
+                FUNC_SETTLE,
+                Arrays.<Type>asList(),
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
 
     public RemoteFunctionCall<BigInteger> userBalances(String param0) {
-        final Function function = new Function(FUNC_USERBALANCES, 
+        final Function function = new Function(FUNC_USERBALANCES,
                 Arrays.<Type>asList(new Address(160, param0)),
-                Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {}));
+                Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {
+                }));
         return executeRemoteCallSingleValueReturn(function, BigInteger.class);
     }
 
     public RemoteFunctionCall<TransactionReceipt> withdraw() {
         final Function function = new Function(
-                FUNC_WITHDRAW, 
-                Arrays.<Type>asList(), 
+                FUNC_WITHDRAW,
+                Arrays.<Type>asList(),
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }

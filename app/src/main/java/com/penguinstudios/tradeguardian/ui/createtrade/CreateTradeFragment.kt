@@ -8,6 +8,7 @@ import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 import com.penguinstudios.tradeguardian.R
@@ -15,7 +16,9 @@ import com.penguinstudios.tradeguardian.data.model.Network
 import com.penguinstudios.tradeguardian.data.model.UserRole
 import com.penguinstudios.tradeguardian.databinding.CreateTradeFragmentBinding
 import com.penguinstudios.tradeguardian.databinding.LayoutSpinnerBinding
+import com.penguinstudios.tradeguardian.ui.confirmtrade.ConfirmTradeFragment
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class CreateTradeFragment : Fragment() {
@@ -43,10 +46,15 @@ class CreateTradeFragment : Fragment() {
         }
 
         binding.btnCreateTrade.setOnClickListener {
-            val userRole = when (binding.radioGroup.checkedRadioButtonId) {
+            val userRole: UserRole? = when (binding.radioGroup.checkedRadioButtonId) {
                 R.id.radio_btn_seller -> UserRole.SELLER
                 R.id.radio_btn_buyer -> UserRole.BUYER
-                else -> throw IllegalStateException("A user role must be selected.")
+                else -> null
+            }
+
+            if (userRole == null) {
+                Toast.makeText(requireContext(), "No user role selected", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
             }
 
             viewModel.onCreateTradeClick(
@@ -55,6 +63,23 @@ class CreateTradeFragment : Fragment() {
                 binding.etItemPrice.text.toString(),
                 binding.etDescription.text.toString()
             )
+        }
+
+        lifecycleScope.launch {
+            viewModel.uiState.collect { uiState ->
+                when (uiState) {
+                    is CreateTradeUIState.ConfirmContractDeployment -> {
+                        ConfirmTradeFragment(uiState).show(
+                            requireActivity().supportFragmentManager,
+                            null
+                        )
+                    }
+
+                    is CreateTradeUIState.Error -> {
+                        Toast.makeText(requireContext(), uiState.message, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
         }
     }
 
@@ -83,7 +108,7 @@ class CreateTradeFragment : Fragment() {
     private fun initScanner() {
         val options = ScanOptions()
         options.setDesiredBarcodeFormats(ScanOptions.QR_CODE)
-        options.setPrompt("Scan seed phrase")
+        options.setPrompt("Scan counterparty address")
         options.setBeepEnabled(false)
         options.setOrientationLocked(true)
         barcodeLauncher.launch(options)
