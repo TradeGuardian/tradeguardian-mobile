@@ -33,6 +33,6 @@ object WalletUtil {
 
     fun formatToUSD(value: BigDecimal): String {
         val format = NumberFormat.getCurrencyInstance(Locale.US)
-        return format.format(value)
+        return format.format(value) + " USD"
     }
 }

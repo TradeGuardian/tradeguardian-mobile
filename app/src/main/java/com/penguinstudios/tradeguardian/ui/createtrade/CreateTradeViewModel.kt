@@ -2,7 +2,7 @@ package com.penguinstudios.tradeguardian.ui.createtrade
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.penguinstudios.tradeguardian.data.ContractDeployment
+import com.penguinstudios.tradeguardian.data.model.ContractDeployment
 import com.penguinstudios.tradeguardian.data.RemoteRepository
 import com.penguinstudios.tradeguardian.data.WalletRepository
 import com.penguinstudios.tradeguardian.data.model.ExchangeRateResponse
@@ -13,7 +13,6 @@ import com.penguinstudios.tradeguardian.util.WalletUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
@@ -22,8 +21,6 @@ import org.web3j.protocol.core.methods.response.EthGasPrice
 import timber.log.Timber
 import java.math.BigDecimal
 import java.math.BigInteger
-import java.text.NumberFormat
-import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
@@ -35,6 +32,8 @@ class CreateTradeViewModel @Inject constructor(
     private val _uiState = MutableSharedFlow<CreateTradeUIState>()
     val uiState = _uiState.asSharedFlow()
     private lateinit var contractDeployment: ContractDeployment
+    private lateinit var gasPrice: BigInteger
+    private lateinit var gasLimit: BigInteger
 
     fun onCreateTradeClick(
         userRole: UserRole,
@@ -84,8 +83,8 @@ class CreateTradeViewModel @Inject constructor(
                     _uiState.emit(CreateTradeUIState.FailedToGetGasData)
                     return@launch
                 } else {
-                    val gasPrice = gasPriceResult.gasPrice
-                    val gasLimit = gasLimitResult.amountUsed
+                    gasPrice = gasPriceResult.gasPrice
+                    gasLimit = gasLimitResult.amountUsed
                     val deployContractCostWei: BigInteger = gasPrice.multiply(gasLimit)
                     itemCostEther = WalletUtil.weiToEther(deployContractCostWei)
                     formattedGasCostEther = itemCostEther.toString() + " " +
@@ -95,14 +94,13 @@ class CreateTradeViewModel @Inject constructor(
                 if (exchangeRateResult == null) {
                     _uiState.emit(CreateTradeUIState.FailedToGetExchangeRate(formattedGasCostEther))
                     return@launch
-                }else{
+                } else {
                     val unformattedItemCostUsd =
                         BigDecimal(exchangeRateResult.price).multiply(contractDeployment.itemPriceDecimal)
                     val unformattedGasCostUsd =
                         BigDecimal(exchangeRateResult.price).multiply(itemCostEther)
-                    val numberFormat = NumberFormat.getCurrencyInstance(Locale.US)
-                    formattedItemCostUsd = numberFormat.format(unformattedItemCostUsd) + " USD"
-                    formattedGasCostUsd = numberFormat.format(unformattedGasCostUsd) + " USD"
+                    formattedItemCostUsd = WalletUtil.formatToUSD(unformattedItemCostUsd)
+                    formattedGasCostUsd = WalletUtil.formatToUSD(unformattedGasCostUsd)
                 }
 
                 _uiState.emit(
@@ -159,12 +157,18 @@ class CreateTradeViewModel @Inject constructor(
             try {
                 _uiState.emit(CreateTradeUIState.ShowDeployContractProgress)
 
-                val txReceipt = remoteRepository.deployContract(contractDeployment)
+                val txReceipt = remoteRepository.deployContract(
+                    contractDeployment, gasPrice, gasLimit
+                )
+
+                //Calculate how much ether the gas is worth
+                val amountEtherUsed = txReceipt.gasUsed.multiply(gasPrice)
 
                 _uiState.emit(
                     CreateTradeUIState.SuccessDeployContract(
                         txReceipt.transactionHash,
-                        txReceipt.contractAddress
+                        txReceipt.contractAddress,
+                        WalletUtil.weiToEther(amountEtherUsed).toString() + " BNB"
                     )
                 )
 

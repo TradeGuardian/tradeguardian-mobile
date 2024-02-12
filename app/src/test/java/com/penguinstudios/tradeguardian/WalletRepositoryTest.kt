@@ -3,14 +3,10 @@ package com.penguinstudios.tradeguardian
 
 import com.penguinstudios.tradeguardian.data.SharedPrefManager
 import com.penguinstudios.tradeguardian.data.WalletRepository
-import com.penguinstudios.tradeguardian.util.WalletUtil
-import junit.framework.TestCase.assertTrue
 import org.junit.Before
-import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.RuntimeEnvironment
 import org.web3j.protocol.Web3j
 
 @RunWith(RobolectricTestRunner::class)

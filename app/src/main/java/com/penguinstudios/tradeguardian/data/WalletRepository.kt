@@ -1,10 +1,9 @@
 package com.penguinstudios.tradeguardian.data
 
-import com.penguinstudios.tradeguardian.data.CreatePasswordValidator.isSameAs
-import com.penguinstudios.tradeguardian.data.CreatePasswordValidator.isValidPassword
-import com.penguinstudios.tradeguardian.data.MnemonicValidator.isValidMnemonic
+import com.penguinstudios.tradeguardian.data.validator.CreatePasswordValidator.isSameAs
+import com.penguinstudios.tradeguardian.data.validator.CreatePasswordValidator.isValidPassword
+import com.penguinstudios.tradeguardian.data.validator.MnemonicValidator.isValidMnemonic
 import com.penguinstudios.tradeguardian.util.WalletUtil
-import org.web3j.crypto.Bip32ECKeyPair
 import org.web3j.crypto.Bip39Wallet
 import org.web3j.crypto.CipherException
 import org.web3j.crypto.Credentials

@@ -67,7 +67,11 @@ class ConfirmTradeFragment(
             viewModel.uiState.collect { uiState ->
                 when (uiState) {
                     is CreateTradeUIState.SuccessDeployContract -> {
-                        SuccessCreateTradeFragment(uiState.txHash, uiState.contractAddress).show(
+                        SuccessCreateTradeFragment(
+                            uiState.txHash,
+                            uiState.contractAddress,
+                            uiState.formattedGasUsed
+                        ).show(
                             requireActivity().supportFragmentManager,
                             null
                         )

@@ -1,10 +1,13 @@
 package com.penguinstudios.tradeguardian.ui.createtrade
 
-import com.penguinstudios.tradeguardian.data.ContractDeployment
+import com.penguinstudios.tradeguardian.data.model.ContractDeployment
 
 sealed class CreateTradeUIState {
-    data class SuccessDeployContract(val txHash: String, val contractAddress: String) :
-        CreateTradeUIState()
+    data class SuccessDeployContract(
+        val txHash: String,
+        val contractAddress: String,
+        val formattedGasUsed: String
+    ) : CreateTradeUIState()
 
     data class ConfirmContractDeployment(
         val contractDeployment: ContractDeployment

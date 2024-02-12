@@ -1,4 +1,4 @@
-package com.penguinstudios.tradeguardian.data
+package com.penguinstudios.tradeguardian.data.validator
 
 object CreatePasswordValidator {
 

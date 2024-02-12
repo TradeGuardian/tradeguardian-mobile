@@ -67,6 +67,31 @@
         app:layout_constraintStart_toStartOf="@+id/tv_static_tx_hash"
         app:layout_constraintTop_toBottomOf="@+id/tv_static_contract_address" />
 
+    <TextView
+        android:id="@+id/tv_static_gas_used"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:fontFamily="@font/poppins_regular"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:text="Gas Used:"
+        android:textColor="@color/default_text_color"
+        app:layout_constraintTop_toBottomOf="@+id/tv_contract_address" />
+
+    <TextView
+        android:id="@+id/tv_gas_used"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/poppins_regular"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:text="--"
+        android:textColor="@color/white"
+        app:layout_constraintEnd_toEndOf="@+id/tv_static_tx_hash"
+        app:layout_constraintStart_toStartOf="@+id/tv_static_tx_hash"
+        app:layout_constraintTop_toBottomOf="@+id/tv_static_gas_used" />
+
     <View
         android:id="@+id/divider"
         android:layout_width="0dp"
@@ -77,7 +102,7 @@
         android:background="@color/default_text_color"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_contract_address" />
+        app:layout_constraintTop_toBottomOf="@+id/tv_gas_used" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/btn_view_explorer"

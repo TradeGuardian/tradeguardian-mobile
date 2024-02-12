@@ -12,7 +12,8 @@ import com.penguinstudios.tradeguardian.databinding.SuccessCreateContractFragmen
 
 class SuccessCreateTradeFragment(
     private val txHash: String,
-    private val contractAddress: String
+    private val contractAddress: String,
+    private val formattedGasUsed: String
 ) : DialogFragment() {
 
     private lateinit var binding: SuccessCreateContractFragmentBinding
@@ -40,6 +41,7 @@ class SuccessCreateTradeFragment(
         super.onViewCreated(view, savedInstanceState)
         binding.tvTxHash.text = txHash
         binding.tvContractAddress.text = contractAddress
+        binding.tvGasUsed.text = formattedGasUsed
 
         binding.btnViewExplorer.setOnClickListener {
             val url = Network.TEST_NET.explorerUrl + contractAddress

@@ -1,7 +1,5 @@
-package com.penguinstudios.tradeguardian.data
+package com.penguinstudios.tradeguardian.data.model
 
-import com.penguinstudios.tradeguardian.data.model.Network
-import com.penguinstudios.tradeguardian.data.model.UserRole
 import org.web3j.crypto.WalletUtils
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -66,15 +64,49 @@ class ContractDeployment private constructor(
         private lateinit var userWalletAddress: String
         private lateinit var counterPartyAddress: String
 
-        //@formatter:off
         override fun network(network: Network) = apply { this.network = network }
-        override fun feeRecipientAddress(address: String) = apply { this.feeRecipientAddress = address }
-        override fun userRole(userRole: UserRole) = apply { this.userRole = userRole }
-        override fun itemPrice(itemPrice: String) = apply { this.itemPrice = itemPrice }
-        override fun description(description: String) = apply { this.description = description }
-        override fun userWalletAddress(address: String) = apply { this.userWalletAddress = address }
-        override fun counterPartyAddress(address: String) = apply { this.counterPartyAddress = address }
-        //@formatter:on
+
+        override fun feeRecipientAddress(address: String) = apply {
+            require(WalletUtils.isValidAddress(address)) { "Not a valid fee recipient address" }
+            this.feeRecipientAddress = address
+        }
+
+        override fun userRole(userRole: UserRole) = apply {
+            require(userRole in UserRole.values()) { "Select your role" }
+            this.userRole = userRole
+        }
+
+        override fun itemPrice(itemPrice: String) = apply {
+            require(itemPrice.isNotEmpty()) { "No item price entered" }
+            //Item price must not start with '0' unless it is a decimal number starting with '0.'
+            if (itemPrice.startsWith("0") && !itemPrice.matches(Regex("^0\\.\\d+$"))) {
+                throw IllegalArgumentException("Invalid item price")
+            }
+
+            //Item price must not have trailing decimal points '1.'
+            if (itemPrice.matches(Regex(".*\\.$"))) {
+                throw IllegalArgumentException("Invalid item price: trailing decimal point")
+            }
+
+            this.itemPrice = itemPrice
+        }
+
+        override fun description(description: String) = apply {
+            require(description.length <= 300) { "Description must be less than 300 characters" }
+            this.description = description
+        }
+
+        override fun userWalletAddress(address: String) = apply {
+            require(address.isNotEmpty()) { "No user wallet address entered" }
+            require(WalletUtils.isValidAddress(address)) { "Not a valid user wallet address" }
+            this.userWalletAddress = address
+        }
+
+        override fun counterPartyAddress(address: String) = apply {
+            require(address.isNotEmpty()) { "No counterparty address entered" }
+            require(WalletUtils.isValidAddress(address)) { "Not a valid counterparty address" }
+            this.counterPartyAddress = address
+        }
 
         override fun build(): ContractDeployment {
             val buyerAddress: String
@@ -94,21 +126,16 @@ class ContractDeployment private constructor(
             val itemPriceDecimal = try {
                 BigDecimal(itemPrice)
             } catch (e: NumberFormatException) {
-                throw IllegalArgumentException("Invalid item price format")
+                throw IllegalArgumentException("Invalid item price, not a number")
             }
 
             require(itemPriceDecimal > BigDecimal.ZERO) { "Item price must be greater than 0" }
-            val itemPriceWei =
-                itemPriceDecimal.multiply(BigDecimal.TEN.pow(18)).toBigInteger()
+            val itemPriceWei = itemPriceDecimal.multiply(BigDecimal.TEN.pow(18)).toBigInteger()
             val itemPriceFormatted = itemPrice + " " + network.networkTokenName
 
-            require(userRole in UserRole.values()) { "Invalid user role provided" }
-            require(counterPartyAddress.isNotEmpty()) { "Must enter counterparty address" }
-            require(WalletUtils.isValidAddress(feeRecipientAddress)) { "Not a valid fee recipient address" }
             require(WalletUtils.isValidAddress(sellerAddress)) { "Not a valid seller address" }
             require(WalletUtils.isValidAddress(buyerAddress)) { "Not a valid buyer address" }
             require(sellerAddress.lowercase() != buyerAddress.lowercase()) { "Buyer and seller addresses cannot be the same" }
-            require(description.length <= 300) { "Description must be less than 300 characters" }
 
             return ContractDeployment(
                 network,

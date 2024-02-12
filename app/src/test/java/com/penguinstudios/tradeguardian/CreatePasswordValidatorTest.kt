@@ -1,7 +1,7 @@
 package com.penguinstudios.tradeguardian
 
-import com.penguinstudios.tradeguardian.data.CreatePasswordValidator.isSameAs
-import com.penguinstudios.tradeguardian.data.CreatePasswordValidator.isValidPassword
+import com.penguinstudios.tradeguardian.data.validator.CreatePasswordValidator.isSameAs
+import com.penguinstudios.tradeguardian.data.validator.CreatePasswordValidator.isValidPassword
 import org.junit.Test
 import org.junit.Assert.assertThrows
 

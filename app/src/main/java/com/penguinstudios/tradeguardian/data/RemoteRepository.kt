@@ -1,9 +1,9 @@
 package com.penguinstudios.tradeguardian.data
 
 import com.penguinstudios.tradeguardian.contract.Escrow
+import com.penguinstudios.tradeguardian.data.model.ContractDeployment
 import com.penguinstudios.tradeguardian.data.model.ExchangeRateResponse
 import com.penguinstudios.tradeguardian.util.Constants
-import com.penguinstudios.tradeguardian.util.CustomGasProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.withContext
@@ -19,6 +19,8 @@ import org.web3j.protocol.core.methods.response.EthEstimateGas
 import org.web3j.protocol.core.methods.response.EthGasPrice
 import org.web3j.protocol.core.methods.response.EthGetBalance
 import org.web3j.protocol.core.methods.response.TransactionReceipt
+import org.web3j.tx.gas.StaticGasProvider
+import java.math.BigInteger
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -86,12 +88,16 @@ class RemoteRepository @Inject constructor(
         }
     }
 
-    suspend fun deployContract(contractDeployment: ContractDeployment): TransactionReceipt {
+    suspend fun deployContract(
+        contractDeployment: ContractDeployment,
+        gasPrice: BigInteger,
+        gasLimit: BigInteger
+    ): TransactionReceipt {
         return withContext(Dispatchers.IO) {
             Escrow.deploy(
                 web3j,
                 walletRepository.credentials,
-                CustomGasProvider(),
+                StaticGasProvider(gasPrice, gasLimit),
                 contractDeployment.feeRecipientAddress,
                 contractDeployment.sellerAddress,
                 contractDeployment.buyerAddress,

@@ -2,7 +2,7 @@ package com.penguinstudios.tradeguardian.ui.importwallet
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.penguinstudios.tradeguardian.data.PasswordStrengthEvaluator
+import com.penguinstudios.tradeguardian.data.validator.PasswordStrengthEvaluator
 import com.penguinstudios.tradeguardian.data.WalletRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
