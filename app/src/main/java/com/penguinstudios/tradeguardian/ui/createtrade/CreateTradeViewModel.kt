@@ -13,6 +13,7 @@ import com.penguinstudios.tradeguardian.util.WalletUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
@@ -34,8 +35,6 @@ class CreateTradeViewModel @Inject constructor(
     private val _uiState = MutableSharedFlow<CreateTradeUIState>()
     val uiState = _uiState.asSharedFlow()
     private lateinit var contractDeployment: ContractDeployment
-    private var itemCostUsd: String? = null
-    private var totalDeploymentGasCostEther: String? = null
 
     fun onCreateTradeClick(
         userRole: UserRole,
@@ -55,6 +54,22 @@ class CreateTradeViewModel @Inject constructor(
                     .counterPartyAddress(counterPartyAddress)
                     .build()
 
+                _uiState.emit(CreateTradeUIState.ConfirmContractDeployment(contractDeployment))
+            } catch (e: Exception) {
+                Timber.e(e)
+                _uiState.emit(CreateTradeUIState.Error(e.message.toString()))
+            }
+        }
+    }
+
+    fun getDeploymentCosts() {
+        viewModelScope.launch {
+            try {
+                val itemCostEther: BigDecimal
+                val formattedGasCostEther: String
+                var formattedItemCostUsd: String? = null
+                var formattedGasCostUsd: String? = null
+
                 // Start all operations concurrently
                 val gasPriceDeferred = async { estimateGasPrice() }
                 val gasLimitDeferred = async { estimateDeployContractGasLimit(contractDeployment) }
@@ -66,33 +81,39 @@ class CreateTradeViewModel @Inject constructor(
                 val exchangeRateResult = exchangeRateDeferred.await()
 
                 if (gasPriceResult == null || gasLimitResult == null) {
-                    _uiState.emit(CreateTradeUIState.Error("Current node is having problems. Please try again later."))
+                    _uiState.emit(CreateTradeUIState.FailedToGetGasData)
                     return@launch
                 } else {
                     val gasPrice = gasPriceResult.gasPrice
                     val gasLimit = gasLimitResult.amountUsed
                     val deployContractCostWei: BigInteger = gasPrice.multiply(gasLimit)
-                    totalDeploymentGasCostEther = WalletUtil.weiToEther(deployContractCostWei)
-                        .toString() + " " + contractDeployment.network.networkTokenName
+                    itemCostEther = WalletUtil.weiToEther(deployContractCostWei)
+                    formattedGasCostEther = itemCostEther.toString() + " " +
+                            contractDeployment.network.networkTokenName
                 }
 
-                if (exchangeRateResult != null) {
-                    val unformattedUsdAmount =
+                if (exchangeRateResult == null) {
+                    _uiState.emit(CreateTradeUIState.FailedToGetExchangeRate(formattedGasCostEther))
+                    return@launch
+                }else{
+                    val unformattedItemCostUsd =
                         BigDecimal(exchangeRateResult.price).multiply(contractDeployment.itemPriceDecimal)
-                    itemCostUsd = NumberFormat.getCurrencyInstance(Locale.US)
-                        .format(unformattedUsdAmount) + " USD"
+                    val unformattedGasCostUsd =
+                        BigDecimal(exchangeRateResult.price).multiply(itemCostEther)
+                    val numberFormat = NumberFormat.getCurrencyInstance(Locale.US)
+                    formattedItemCostUsd = numberFormat.format(unformattedItemCostUsd) + " USD"
+                    formattedGasCostUsd = numberFormat.format(unformattedGasCostUsd) + " USD"
                 }
 
                 _uiState.emit(
-                    CreateTradeUIState.ConfirmContractDeployment(
-                        contractDeployment,
-                        itemCostUsd,
-                        totalDeploymentGasCostEther
+                    CreateTradeUIState.SuccessGetDeploymentCosts(
+                        formattedItemCostUsd,
+                        formattedGasCostEther,
+                        formattedGasCostUsd
                     )
                 )
             } catch (e: Exception) {
                 Timber.e(e)
-                _uiState.emit(CreateTradeUIState.Error(e.message.toString()))
             }
         }
     }
@@ -136,15 +157,21 @@ class CreateTradeViewModel @Inject constructor(
     fun onConfirmBtnClick() {
         viewModelScope.launch {
             try {
+                _uiState.emit(CreateTradeUIState.ShowDeployContractProgress)
+
                 val txReceipt = remoteRepository.deployContract(contractDeployment)
+
                 _uiState.emit(
                     CreateTradeUIState.SuccessDeployContract(
                         txReceipt.transactionHash,
                         txReceipt.contractAddress
                     )
                 )
+
+                _uiState.emit(CreateTradeUIState.HideDeployContractProgress)
             } catch (e: Exception) {
                 Timber.e(e, "Failed to deploy contract")
+                _uiState.emit(CreateTradeUIState.HideDeployContractProgress)
                 _uiState.emit(CreateTradeUIState.Error(e.message.toString()))
             }
         }

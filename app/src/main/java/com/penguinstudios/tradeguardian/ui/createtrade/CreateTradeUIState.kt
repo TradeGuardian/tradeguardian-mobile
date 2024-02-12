@@ -7,10 +7,22 @@ sealed class CreateTradeUIState {
         CreateTradeUIState()
 
     data class ConfirmContractDeployment(
-        val contractDeployment: ContractDeployment,
-        val itemCostUsd: String?,
-        val totalDeploymentGasCostEther: String?
+        val contractDeployment: ContractDeployment
     ) : CreateTradeUIState()
+
+    data class SuccessGetDeploymentCosts(
+        val itemCostUsd: String?,
+        val totalDeploymentGasCostEther: String?,
+        val totalDeploymentGasCostUsd: String?
+    ) : CreateTradeUIState()
+
+    object FailedToGetGasData : CreateTradeUIState()
+
+    data class FailedToGetExchangeRate(val totalDeploymentGasCostEther: String) :
+        CreateTradeUIState()
+
+    object ShowDeployContractProgress : CreateTradeUIState()
+    object HideDeployContractProgress : CreateTradeUIState()
 
     data class Error(val message: String) : CreateTradeUIState()
 }

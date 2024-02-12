@@ -74,7 +74,16 @@
             android:fontFamily="@font/poppins_regular"
             android:text="-- USD"
             android:textColor="@color/white"
+            android:visibility="invisible"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_item_price" />
+
+        <ProgressBar
+            android:id="@+id/progress_item_price_usd"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:indeterminateTint="@color/purple_200"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/tv_item_price" />
 
@@ -90,12 +99,32 @@
             app:layout_constraintTop_toBottomOf="@+id/tv_item_price_usd" />
 
         <TextView
-            android:id="@+id/tv_estimated_gas"
+            android:id="@+id/tv_estimated_gas_ether"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="@font/poppins_regular"
             android:text="-- BNB"
             android:textColor="@color/white"
+            android:visibility="invisible"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_static_gas_cost" />
+
+        <TextView
+            android:id="@+id/tv_estimated_gas_usd"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/poppins_regular"
+            android:text="-- USD"
+            android:textColor="@color/white"
+            android:visibility="invisible"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_estimated_gas_ether" />
+
+        <ProgressBar
+            android:id="@+id/progress_estimated_gas"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:indeterminateTint="@color/purple_200"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/tv_static_gas_cost" />
 
@@ -108,7 +137,7 @@
             android:text="I am the:"
             android:textColor="@color/default_text_color"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tv_estimated_gas" />
+            app:layout_constraintTop_toBottomOf="@+id/tv_estimated_gas_usd" />
 
         <TextView
             android:id="@+id/tv_my_role"

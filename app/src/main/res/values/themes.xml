@@ -18,6 +18,10 @@
         <item name="fontFamily">@font/poppins_regular</item>
     </style>
 
+    <style name="alertDialogTheme" parent="Theme.MaterialComponents.Dialog">
+        <item name="android:background">@color/background_secondary_color</item>
+    </style>
+
     <style name="FragmentSlideUpAnim">
         <item name="android:windowEnterAnimation">@anim/enter_from_bottom</item>
         <item name="android:windowExitAnimation">@anim/exit_from_bottom</item>

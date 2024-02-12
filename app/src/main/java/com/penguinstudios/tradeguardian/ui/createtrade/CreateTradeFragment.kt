@@ -88,6 +88,7 @@ class CreateTradeFragment : Fragment() {
                         Toast.makeText(requireContext(), uiState.message, Toast.LENGTH_SHORT).show()
                     }
 
+                    else -> {}
                 }
             }
         }
