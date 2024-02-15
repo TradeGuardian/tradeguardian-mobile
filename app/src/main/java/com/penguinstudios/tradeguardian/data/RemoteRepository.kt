@@ -19,6 +19,7 @@ import org.web3j.protocol.core.methods.response.EthEstimateGas
 import org.web3j.protocol.core.methods.response.EthGasPrice
 import org.web3j.protocol.core.methods.response.EthGetBalance
 import org.web3j.protocol.core.methods.response.TransactionReceipt
+import org.web3j.tx.gas.DefaultGasProvider
 import org.web3j.tx.gas.StaticGasProvider
 import java.math.BigInteger
 import javax.inject.Inject
@@ -110,6 +111,19 @@ class RemoteRepository @Inject constructor(
                 .orElseThrow {
                     IllegalStateException("Transaction receipt not present")
                 }
+        }
+    }
+
+    //Used for read only methods
+    private fun loadContract(contractAddress: String): Escrow {
+        return Escrow.load(
+            contractAddress, web3j, walletRepository.credentials, DefaultGasProvider()
+        )
+    }
+
+    suspend fun getDateCreatedSeconds(contractAddress: String) : BigInteger {
+        return withContext(Dispatchers.IO) {
+            loadContract(contractAddress).contractCreationDate().sendAsync().await()
         }
     }
 }

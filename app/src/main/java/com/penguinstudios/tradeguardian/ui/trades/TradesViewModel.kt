@@ -1,0 +1,44 @@
+package com.penguinstudios.tradeguardian.ui.trades
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.penguinstudios.tradeguardian.data.LocalRepository
+import com.penguinstudios.tradeguardian.data.WalletRepository
+import com.penguinstudios.tradeguardian.data.model.Trade
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.launch
+import timber.log.Timber
+import javax.inject.Inject
+
+@HiltViewModel
+class TradesViewModel @Inject constructor(
+    private val walletRepository: WalletRepository,
+    private val localRepository: LocalRepository
+) : ViewModel() {
+
+    private val _uiState = MutableSharedFlow<TradesUIState>()
+    val uiState = _uiState.asSharedFlow()
+    val trades: MutableList<Trade> = mutableListOf()
+
+    fun getTrades() {
+        viewModelScope.launch {
+            try {
+                trades.clear()
+                val list = localRepository.getTrades(walletRepository.credentials.address)
+                if(list.isEmpty()){
+                    _uiState.emit(TradesUIState.NoTrades)
+                    return@launch
+                }
+                trades.addAll(list)
+                _uiState.emit(TradesUIState.SuccessGetTrades)
+            } catch (e: Exception) {
+                Timber.e(e)
+                _uiState.emit(TradesUIState.Error(e.message.toString()))
+            }
+        }
+
+    }
+}

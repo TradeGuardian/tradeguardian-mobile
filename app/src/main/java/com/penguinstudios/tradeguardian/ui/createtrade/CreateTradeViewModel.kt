@@ -2,11 +2,14 @@ package com.penguinstudios.tradeguardian.ui.createtrade
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.penguinstudios.tradeguardian.data.LocalRepository
 import com.penguinstudios.tradeguardian.data.model.ContractDeployment
 import com.penguinstudios.tradeguardian.data.RemoteRepository
 import com.penguinstudios.tradeguardian.data.WalletRepository
+import com.penguinstudios.tradeguardian.data.model.ContractStatus
 import com.penguinstudios.tradeguardian.data.model.ExchangeRateResponse
 import com.penguinstudios.tradeguardian.data.model.Network
+import com.penguinstudios.tradeguardian.data.model.Trade
 import com.penguinstudios.tradeguardian.data.model.UserRole
 import com.penguinstudios.tradeguardian.util.Constants
 import com.penguinstudios.tradeguardian.util.WalletUtil
@@ -26,7 +29,8 @@ import javax.inject.Inject
 @HiltViewModel
 class CreateTradeViewModel @Inject constructor(
     private val walletRepository: WalletRepository,
-    private val remoteRepository: RemoteRepository
+    private val remoteRepository: RemoteRepository,
+    private val localRepository: LocalRepository
 ) : ViewModel() {
 
     private val _uiState = MutableSharedFlow<CreateTradeUIState>()
@@ -66,8 +70,8 @@ class CreateTradeViewModel @Inject constructor(
             try {
                 val itemCostEther: BigDecimal
                 val formattedGasCostEther: String
-                var formattedItemCostUsd: String? = null
-                var formattedGasCostUsd: String? = null
+                val formattedItemCostUsd: String?
+                val formattedGasCostUsd: String?
 
                 // Start all operations concurrently
                 val gasPriceDeferred = async { estimateGasPrice() }
@@ -161,14 +165,32 @@ class CreateTradeViewModel @Inject constructor(
                     contractDeployment, gasPrice, gasLimit
                 )
 
-                //Calculate how much ether the gas is worth
-                val amountEtherUsed = txReceipt.gasUsed.multiply(gasPrice)
+                val contractAddress = txReceipt.contractAddress
+                val amountEtherUsedWei = txReceipt.gasUsed.multiply(gasPrice)
+
+                val dateCreatedSeconds = remoteRepository.getDateCreatedSeconds(contractAddress)
+
+                val trade = Trade.builder()
+                    .network(contractDeployment.network)
+                    .contractAddress(contractAddress)
+                    .contractStatus(ContractStatus.AWAITING_DEPOSIT)
+                    .dateCreatedSeconds(dateCreatedSeconds)
+                    .itemPriceWei(contractDeployment.itemPriceWei)
+                    .gasCostWei(amountEtherUsedWei)
+                    .userRole(contractDeployment.userRole)
+                    .userWalletAddress(contractDeployment.userWalletAddress)
+                    .counterPartyRole(contractDeployment.counterPartyRole)
+                    .counterPartyWalletAddress(contractDeployment.counterPartyAddress)
+                    .description(contractDeployment.description)
+                    .build()
+
+                localRepository.insertTrade(trade)
 
                 _uiState.emit(
                     CreateTradeUIState.SuccessDeployContract(
                         txReceipt.transactionHash,
-                        txReceipt.contractAddress,
-                        WalletUtil.weiToEther(amountEtherUsed).toString() + " BNB"
+                        contractAddress,
+                        trade.getFormattedGasCost()
                     )
                 )
 

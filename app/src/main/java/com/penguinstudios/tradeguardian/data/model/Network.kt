@@ -27,13 +27,9 @@ enum class Network(
     );
 
     companion object {
-        fun getNetworkBySpinnerPosition(position: Int): Network {
-            for (network in values()) {
-                if (network.id == position) {
-                    return network
-                }
-            }
-            throw IllegalStateException("Invalid spinner position")
+        fun getNetworkById(id: Int): Network {
+            return values().firstOrNull { it.id == id }
+                ?: throw IllegalStateException("Invalid id: $id")
         }
     }
 }
