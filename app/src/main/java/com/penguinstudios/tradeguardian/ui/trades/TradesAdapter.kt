@@ -60,6 +60,10 @@ class TradesAdapter(
         val tvDateCreated: TextView = itemView.findViewById(R.id.tv_date_created)
         val tvItemPrice: TextView = itemView.findViewById(R.id.tv_item_price)
 
+        init {
+            itemView.setOnClickListener(this)
+        }
+
         override fun onClick(view: View) {
             callback.onTradeClick(adapterPosition)
         }

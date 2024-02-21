@@ -8,6 +8,7 @@
     <color name="background_secondary_color">#2d2d2d</color>
 
     <color name="purple_200">#BB86FC</color>
+    <color name="purple_400">#7E57C2</color>
 
     <color name="buyer_color">#007BFF</color>
     <color name="seller_color">#28A745</color>
@@ -21,5 +22,9 @@
     <color name="green_400">#66BB6A</color>
     <color name="blue_400">#42A5F5</color>
     <color name="yellow_400">#D4E157</color>
+
+    <color name="light_ripple_color">#33FFFFFF</color>
+
+    <color name="green_500">#009424</color>
 
 </resources>

@@ -31,6 +31,7 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
             <ImageView
+                android:id="@+id/btn_add_trade"
                 android:layout_width="wrap_content"
                 android:layout_height="0dp"
                 android:paddingStart="16dp"

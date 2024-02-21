@@ -2,8 +2,11 @@ package com.penguinstudios.tradeguardian.data
 
 import com.penguinstudios.tradeguardian.contract.Escrow
 import com.penguinstudios.tradeguardian.data.model.ContractDeployment
+import com.penguinstudios.tradeguardian.data.model.ContractStatus
 import com.penguinstudios.tradeguardian.data.model.ExchangeRateResponse
+import com.penguinstudios.tradeguardian.data.model.Network
 import com.penguinstudios.tradeguardian.util.Constants
+import com.penguinstudios.tradeguardian.util.CustomGasProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.withContext
@@ -19,6 +22,7 @@ import org.web3j.protocol.core.methods.response.EthEstimateGas
 import org.web3j.protocol.core.methods.response.EthGasPrice
 import org.web3j.protocol.core.methods.response.EthGetBalance
 import org.web3j.protocol.core.methods.response.TransactionReceipt
+import org.web3j.tx.FastRawTransactionManager
 import org.web3j.tx.gas.DefaultGasProvider
 import org.web3j.tx.gas.StaticGasProvider
 import java.math.BigInteger
@@ -48,6 +52,82 @@ class RemoteRepository @Inject constructor(
             withTimeout(15000) {
                 web3j.ethGasPrice().sendAsync().await()
             }
+        }
+    }
+
+    private fun createTxManager(): FastRawTransactionManager {
+        return FastRawTransactionManager(
+            web3j, walletRepository.credentials, Network.TEST_NET.chainId.toLong()
+        )
+    }
+
+    suspend fun buyerDeposit(
+        contractAddress: String,
+        depositAmountWei: BigInteger
+    ): TransactionReceipt {
+        return withContext(Dispatchers.IO) {
+            Escrow.load(contractAddress, web3j, createTxManager(), CustomGasProvider())
+                .buyerDeposit(depositAmountWei)
+                .sendAsync()
+                .await()
+        }
+    }
+
+    suspend fun sellerDeposit(
+        contractAddress: String,
+        depositAmountWei: BigInteger
+    ): TransactionReceipt {
+        return withContext(Dispatchers.IO) {
+            Escrow.load(contractAddress, web3j, createTxManager(), CustomGasProvider())
+                .sellerDeposit(depositAmountWei)
+                .sendAsync()
+                .await()
+        }
+    }
+
+    private suspend fun userBalance(
+        contractAddress: String,
+        walletAddress: String
+    ): BigInteger {
+        return withContext(Dispatchers.IO) {
+            loadContract(contractAddress)
+                .userBalances(walletAddress)
+                .sendAsync()
+                .await()
+        }
+    }
+
+    suspend fun hasDeposited(
+        contractAddress: String,
+        walletAddress: String
+    ): Boolean {
+        return userBalance(contractAddress, walletAddress) > BigInteger.ZERO
+    }
+
+    suspend fun correctItemReceived(contractAddress: String): TransactionReceipt {
+        return withContext(Dispatchers.IO) {
+            Escrow.load(contractAddress, web3j, createTxManager(), CustomGasProvider())
+                .setBuyerHasReceivedCorrectItem()
+                .sendAsync()
+                .await()
+        }
+    }
+
+    suspend fun incorrectItemReceived(contractAddress: String): TransactionReceipt {
+        return withContext(Dispatchers.IO) {
+            Escrow.load(contractAddress, web3j, createTxManager(), CustomGasProvider())
+                .setBuyerHasReceivedIncorrectItem()
+                .sendAsync()
+                .await()
+        }
+    }
+
+    suspend fun itemDelivered(contractAddress: String): TransactionReceipt {
+        return withContext(Dispatchers.IO) {
+            Escrow.load(contractAddress, web3j, createTxManager(), CustomGasProvider())
+                .setSellerHasGivenItem()
+                .sendAsync()
+                .await()
         }
     }
 
@@ -121,9 +201,40 @@ class RemoteRepository @Inject constructor(
         )
     }
 
-    suspend fun getDateCreatedSeconds(contractAddress: String) : BigInteger {
+    suspend fun getContractStatus(contractAddress: String): ContractStatus {
+        return withContext(Dispatchers.IO) {
+            val contractStatusId = loadContract(contractAddress).currentState().sendAsync().await()
+            ContractStatus.getStatusById(contractStatusId.toInt())
+        }
+    }
+
+    suspend fun getDateCreatedSeconds(contractAddress: String): BigInteger {
         return withContext(Dispatchers.IO) {
             loadContract(contractAddress).contractCreationDate().sendAsync().await()
+        }
+    }
+
+    suspend fun getItemPriceWei(contractAddress: String): BigInteger {
+        return withContext(Dispatchers.IO) {
+            loadContract(contractAddress).itemPrice().sendAsync().await()
+        }
+    }
+
+    suspend fun getSellerAddress(contractAddress: String): String {
+        return withContext(Dispatchers.IO) {
+            loadContract(contractAddress).seller().sendAsync().await()
+        }
+    }
+
+    suspend fun getBuyerAddress(contractAddress: String): String {
+        return withContext(Dispatchers.IO) {
+            loadContract(contractAddress).buyer().sendAsync().await()
+        }
+    }
+
+    suspend fun getDescription(contractAddress: String): String {
+        return withContext(Dispatchers.IO) {
+            loadContract(contractAddress).description().sendAsync().await()
         }
     }
 }

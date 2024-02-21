@@ -7,4 +7,8 @@ object Constants {
     const val BINANCE_API_BASE_URL = "https://www.binance.com/api/v3/ticker/"
     const val BNB_USDT_EXCHANGE_RATE_SYMBOL = "BNBUSDT"
     const val DATE_PATTERN = "EEE, MMM d yyyy, hh:mm a z"
+    const val BUYER_DEPOSIT_MULTIPLIER = 2
+    const val SELLER_DEPOSIT_MULTIPLIER = 1
+    // 1% fee of item price if successful transaction between both parties
+    const val FEE_PERCENTAGE = 1;
 }

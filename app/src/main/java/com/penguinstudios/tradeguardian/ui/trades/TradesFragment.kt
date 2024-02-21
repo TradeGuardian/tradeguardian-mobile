@@ -6,18 +6,21 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.penguinstudios.tradeguardian.databinding.TradesFragmentBinding
+import com.penguinstudios.tradeguardian.ui.addtrade.AddTradeFragment
+import com.penguinstudios.tradeguardian.ui.tradeinfo.TradeInfoFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @AndroidEntryPoint
 class TradesFragment : Fragment(), TradesAdapter.Callback {
 
     private lateinit var binding: TradesFragmentBinding
-    private val viewModel: TradesViewModel by viewModels()
+    private val viewModel: TradesViewModel by activityViewModels()
     private lateinit var tradesAdapter: TradesAdapter
 
     override fun onCreateView(
@@ -31,6 +34,10 @@ class TradesFragment : Fragment(), TradesAdapter.Callback {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        binding.btnAddTrade.setOnClickListener {
+            AddTradeFragment().show(requireActivity().supportFragmentManager, null)
+        }
 
         tradesAdapter = TradesAdapter(viewModel.trades, this)
         binding.recyclerView.apply {
@@ -58,6 +65,10 @@ class TradesFragment : Fragment(), TradesAdapter.Callback {
                         binding.progress.visibility = View.GONE
                         Toast.makeText(requireContext(), uiState.message, Toast.LENGTH_SHORT).show()
                     }
+
+                    is TradesUIState.DeleteTrade -> {
+                        tradesAdapter.notifyItemRemoved(uiState.adapterPosition)
+                    }
                 }
             }
         }
@@ -67,6 +78,9 @@ class TradesFragment : Fragment(), TradesAdapter.Callback {
     }
 
     override fun onTradeClick(adapterPosition: Int) {
-
+        TradeInfoFragment(viewModel.trades[adapterPosition]).show(
+            requireActivity().supportFragmentManager,
+            null
+        )
     }
 }

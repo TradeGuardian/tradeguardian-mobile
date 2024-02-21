@@ -140,7 +140,7 @@
             app:layout_constraintTop_toBottomOf="@+id/tv_estimated_gas_usd" />
 
         <TextView
-            android:id="@+id/tv_my_role"
+            android:id="@+id/tv_user_role"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="@font/poppins_regular"
@@ -158,10 +158,10 @@
             android:text="My Wallet:"
             android:textColor="@color/default_text_color"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tv_my_role" />
+            app:layout_constraintTop_toBottomOf="@+id/tv_user_role" />
 
         <TextView
-            android:id="@+id/tv_my_address"
+            android:id="@+id/tv_user_wallet_address"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:ellipsize="middle"
@@ -181,7 +181,7 @@
             android:text="Counterparty Role:"
             android:textColor="@color/default_text_color"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tv_my_address" />
+            app:layout_constraintTop_toBottomOf="@+id/tv_user_wallet_address" />
 
         <TextView
             android:id="@+id/tv_counter_party_role"
@@ -205,7 +205,7 @@
             app:layout_constraintTop_toBottomOf="@+id/tv_counter_party_role" />
 
         <TextView
-            android:id="@+id/tv_counter_party_address"
+            android:id="@+id/tv_counterparty_wallet_address"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:ellipsize="middle"
@@ -226,7 +226,7 @@
             android:text="Description:"
             android:textColor="@color/default_text_color"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tv_counter_party_address" />
+            app:layout_constraintTop_toBottomOf="@+id/tv_counterparty_wallet_address" />
 
         <TextView
             android:id="@+id/tv_description"

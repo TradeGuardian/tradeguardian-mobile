@@ -11,6 +11,7 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.penguinstudios.tradeguardian.R
+import com.penguinstudios.tradeguardian.data.model.ContractDeployment
 import com.penguinstudios.tradeguardian.databinding.ConfirmCreateTradeFragmentBinding
 import com.penguinstudios.tradeguardian.ui.createtrade.CreateTradeUIState
 import com.penguinstudios.tradeguardian.ui.createtrade.CreateTradeViewModel
@@ -20,7 +21,7 @@ import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class ConfirmTradeFragment(
-    private val uiState: CreateTradeUIState.ConfirmContractDeployment
+    private val contractDeployment: ContractDeployment
 ) : DialogFragment() {
 
     private lateinit var binding: ConfirmCreateTradeFragmentBinding
@@ -54,14 +55,14 @@ class ConfirmTradeFragment(
             viewModel.onConfirmBtnClick()
         }
 
-        binding.tvDeployingOn.text = uiState.contractDeployment.network.networkName
-        binding.tvItemPrice.text = uiState.contractDeployment.itemPriceFormatted
+        binding.tvDeployingOn.text = contractDeployment.network.networkName
+        binding.tvItemPrice.text = contractDeployment.itemPriceFormatted
 
-        binding.tvMyRole.text = uiState.contractDeployment.userRole.roleName
-        binding.tvMyAddress.text = uiState.contractDeployment.userWalletAddress
-        binding.tvCounterPartyRole.text = uiState.contractDeployment.counterPartyRole.roleName
-        binding.tvCounterPartyAddress.text = uiState.contractDeployment.counterPartyAddress
-        binding.tvDescription.text = uiState.contractDeployment.description
+        binding.tvUserRole.text = contractDeployment.userRole.roleName
+        binding.tvUserWalletAddress.text = contractDeployment.userWalletAddress
+        binding.tvCounterPartyRole.text = contractDeployment.counterPartyRole.roleName
+        binding.tvCounterpartyWalletAddress.text = contractDeployment.counterPartyAddress
+        binding.tvDescription.text = contractDeployment.description
 
         lifecycleScope.launch {
             viewModel.uiState.collect { uiState ->

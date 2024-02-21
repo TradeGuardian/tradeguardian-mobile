@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.journeyapps.barcodescanner.ScanContract
@@ -17,6 +18,7 @@ import com.penguinstudios.tradeguardian.data.model.UserRole
 import com.penguinstudios.tradeguardian.databinding.CreateTradeFragmentBinding
 import com.penguinstudios.tradeguardian.databinding.LayoutSpinnerBinding
 import com.penguinstudios.tradeguardian.ui.confirmtrade.ConfirmTradeFragment
+import com.penguinstudios.tradeguardian.ui.trades.TradesViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -25,7 +27,8 @@ class CreateTradeFragment : Fragment() {
 
     private lateinit var binding: CreateTradeFragmentBinding
     private lateinit var spinnerBinding: LayoutSpinnerBinding
-    private val viewModel: CreateTradeViewModel by viewModels({ requireActivity() })
+    private val createTradeViewModel: CreateTradeViewModel by activityViewModels()
+    private val tradesViewModel: TradesViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -57,7 +60,7 @@ class CreateTradeFragment : Fragment() {
                 return@setOnClickListener
             }
 
-            viewModel.onCreateTradeClick(
+            createTradeViewModel.onCreateTradeClick(
                 userRole,
                 binding.etCounterPartyAddress.text.toString(),
                 binding.etItemPrice.text.toString(),
@@ -67,7 +70,7 @@ class CreateTradeFragment : Fragment() {
         }
 
         lifecycleScope.launch {
-            viewModel.uiState.collect { uiState ->
+            createTradeViewModel.uiState.collect { uiState ->
                 when (uiState) {
                     is CreateTradeUIState.SuccessDeployContract -> {
                         binding.radioGroup.clearCheck()
@@ -75,10 +78,12 @@ class CreateTradeFragment : Fragment() {
                         binding.etItemPrice.text?.clear()
                         binding.etDescription.text?.clear()
                         binding.parentLayout.clearFocus()
+
+                        tradesViewModel.getTrades()
                     }
 
                     is CreateTradeUIState.ConfirmContractDeployment -> {
-                        ConfirmTradeFragment(uiState).show(
+                        ConfirmTradeFragment(uiState.contractDeployment).show(
                             requireActivity().supportFragmentManager,
                             null
                         )

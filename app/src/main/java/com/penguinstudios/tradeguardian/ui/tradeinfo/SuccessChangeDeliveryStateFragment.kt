@@ -1,4 +1,4 @@
-package com.penguinstudios.tradeguardian.ui.createtrade
+package com.penguinstudios.tradeguardian.ui.tradeinfo
 
 import android.net.Uri
 import android.os.Bundle
@@ -8,15 +8,16 @@ import android.view.ViewGroup
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.fragment.app.DialogFragment
 import com.penguinstudios.tradeguardian.data.model.Network
-import com.penguinstudios.tradeguardian.databinding.SuccessCreateTradeFragmentBinding
+import com.penguinstudios.tradeguardian.databinding.SuccessChangeDeliveryStateFragmentBinding
 
-class SuccessCreateTradeFragment(
-    private val txHash: String,
+class SuccessChangeDeliveryStateFragment(
     private val contractAddress: String,
+    private val txHash: String,
+    private val formattedDeliveryState: String,
     private val formattedGasUsed: String
 ) : DialogFragment() {
 
-    private lateinit var binding: SuccessCreateTradeFragmentBinding
+    private lateinit var binding: SuccessChangeDeliveryStateFragmentBinding
 
     override fun onStart() {
         super.onStart()
@@ -33,14 +34,14 @@ class SuccessCreateTradeFragment(
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = SuccessCreateTradeFragmentBinding.inflate(inflater, container, false)
+        binding = SuccessChangeDeliveryStateFragmentBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.tvTxHash.text = txHash
-        binding.tvContractAddress.text = contractAddress
+        binding.tvDeliveryState.text = formattedDeliveryState
         binding.tvGasUsed.text = formattedGasUsed
 
         binding.btnViewExplorer.setOnClickListener {

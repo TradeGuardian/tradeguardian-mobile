@@ -99,6 +99,8 @@ class ResetWalletFragment : DialogFragment() {
                         startActivity(intent)
                         requireActivity().finish()
                     }
+
+                    else -> {}
                 }
             }
         }

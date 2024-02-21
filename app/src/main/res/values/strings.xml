@@ -10,4 +10,7 @@
     <string name="your_current_wallet">Your current wallet, accounts and assets\nwill be removed from this app permanently.\nThis action cannot be undone.</string>
     <string name="type_to_delete">Type\u00A0\u00A0\"delete\"\u00A0\u00A0to erase current\nwallet permanently</string>
     <string name="view_on_bsc_scan">View on BSC Scan</string>
+    <string name="deposit_description_correct_item">"Confirm that the item has been successfully delivered by the seller.</string>
+    <string name="deposit_description_incorrect_item">Confirm that the item given by the seller is incorrect or no item has been given.\n\nAre you sure? This action is irreversible and will lock both deposits.</string>
+    <string name="deposit_description_item_delivered">Confirm that that the item has been delivered to the buyer.</string>
 </resources>

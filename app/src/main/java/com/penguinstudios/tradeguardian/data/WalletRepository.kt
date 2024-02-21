@@ -26,7 +26,7 @@ class WalletRepository @Inject constructor(
     var shuffledMnemonicList: MutableList<String> = mutableListOf()
 
     init {
-        credentials = Credentials.create("")
+        //credentials = Credentials.create("")
     }
 
     //Generates a wallet with a 12 word mnemonic that has no duplicate words

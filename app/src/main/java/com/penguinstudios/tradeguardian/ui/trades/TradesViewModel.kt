@@ -6,7 +6,6 @@ import com.penguinstudios.tradeguardian.data.LocalRepository
 import com.penguinstudios.tradeguardian.data.WalletRepository
 import com.penguinstudios.tradeguardian.data.model.Trade
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
@@ -28,7 +27,7 @@ class TradesViewModel @Inject constructor(
             try {
                 trades.clear()
                 val list = localRepository.getTrades(walletRepository.credentials.address)
-                if(list.isEmpty()){
+                if (list.isEmpty()) {
                     _uiState.emit(TradesUIState.NoTrades)
                     return@launch
                 }
@@ -39,6 +38,13 @@ class TradesViewModel @Inject constructor(
                 _uiState.emit(TradesUIState.Error(e.message.toString()))
             }
         }
+    }
 
+    suspend fun removeTradeFromList(contractAddress: String) {
+        val index = trades.indexOfFirst { trade -> trade.contractAddress == contractAddress }
+        if (index >= 0) {
+            trades.removeAt(index)
+            _uiState.emit(TradesUIState.DeleteTrade(index))
+        }
     }
 }
