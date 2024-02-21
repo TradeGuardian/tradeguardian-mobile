@@ -13,7 +13,7 @@ import com.penguinstudios.tradeguardian.databinding.ConfirmMnemonicFragmentBindi
 import com.penguinstudios.tradeguardian.ui.createwallet.adapters.AvailableWordsAdapter
 import com.penguinstudios.tradeguardian.ui.createwallet.adapters.SelectedWordsAdapter
 import com.penguinstudios.tradeguardian.ui.createwallet.util.MnemonicItemDecoration
-import com.penguinstudios.tradeguardian.ui.createwallet.util.SpacingUtil
+import com.penguinstudios.tradeguardian.util.SpacingUtil
 import com.penguinstudios.tradeguardian.ui.createwallet.viewmodel.CreateWalletUIState
 import com.penguinstudios.tradeguardian.ui.createwallet.viewmodel.CreateWalletViewModel
 import com.penguinstudios.tradeguardian.ui.createwallet.viewmodel.CreateWalletViewModel.Companion.NUM_WORDS_MNEMONIC

@@ -13,11 +13,13 @@ import com.penguinstudios.tradeguardian.R
 import com.penguinstudios.tradeguardian.data.model.Network
 import com.penguinstudios.tradeguardian.databinding.LayoutSpinnerBinding
 import com.penguinstudios.tradeguardian.databinding.WalletFragmentBinding
+import com.penguinstudios.tradeguardian.ui.resetwallet.ResetWalletFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @AndroidEntryPoint
-class WalletFragment : Fragment() {
+class WalletFragment : Fragment(), WalletPopupWindow.Callback {
 
     private lateinit var binding: WalletFragmentBinding
     private lateinit var spinnerBinding: LayoutSpinnerBinding
@@ -39,6 +41,11 @@ class WalletFragment : Fragment() {
 
         binding.swipeRefreshLayout.setOnRefreshListener {
             viewModel.getWalletBalance()
+        }
+
+        binding.layoutWalletBalance.btnWalletMoreOptions.setOnClickListener {
+            val popupWindow = WalletPopupWindow(it, this)
+            popupWindow.showAsDropDown(it, -100, 0)
         }
 
         lifecycleScope.launch {
@@ -71,5 +78,9 @@ class WalletFragment : Fragment() {
 
         spinnerAdapter.setDropDownViewResource(R.layout.spinner_network_drop_down)
         spinnerBinding.spinnerNetwork.adapter = spinnerAdapter
+    }
+
+    override fun onClearWallet() {
+        ResetWalletFragment().show(requireActivity().supportFragmentManager, null)
     }
 }

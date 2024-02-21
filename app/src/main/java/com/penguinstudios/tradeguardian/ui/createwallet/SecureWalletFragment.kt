@@ -7,12 +7,11 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import com.penguinstudios.tradeguardian.databinding.SecureWalletFragmentBinding
 import com.penguinstudios.tradeguardian.ui.createwallet.adapters.ViewMnemonicAdapter
 import com.penguinstudios.tradeguardian.ui.createwallet.util.MnemonicItemDecoration
-import com.penguinstudios.tradeguardian.ui.createwallet.util.SpacingUtil
+import com.penguinstudios.tradeguardian.util.SpacingUtil
 import com.penguinstudios.tradeguardian.ui.createwallet.viewmodel.CreateWalletViewModel
 import dagger.hilt.android.AndroidEntryPoint
 

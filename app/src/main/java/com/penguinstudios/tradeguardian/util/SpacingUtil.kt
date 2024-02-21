@@ -1,4 +1,4 @@
-package com.penguinstudios.tradeguardian.ui.createwallet.util
+package com.penguinstudios.tradeguardian.util
 
 import android.content.Context
 import android.util.TypedValue
