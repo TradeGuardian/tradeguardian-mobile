@@ -1,5 +1,6 @@
 package com.penguinstudios.tradeguardian.data.model
 
+import com.penguinstudios.tradeguardian.data.validator.EtherAmountValidator
 import org.web3j.crypto.WalletUtils
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -77,17 +78,7 @@ class ContractDeployment private constructor(
         }
 
         override fun itemPrice(itemPrice: String) = apply {
-            require(itemPrice.isNotEmpty()) { "No item price entered" }
-            //Item price must not start with '0' unless it is a decimal number starting with '0.'
-            if (itemPrice.startsWith("0") && !itemPrice.matches(Regex("^0\\.\\d+$"))) {
-                throw IllegalArgumentException("Invalid item price")
-            }
-
-            //Item price must not have trailing decimal points '1.'
-            if (itemPrice.matches(Regex(".*\\.$"))) {
-                throw IllegalArgumentException("Invalid item price: trailing decimal point")
-            }
-
+            EtherAmountValidator.validateAmount(itemPrice)
             this.itemPrice = itemPrice
         }
 

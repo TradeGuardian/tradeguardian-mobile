@@ -14,9 +14,9 @@ import com.penguinstudios.tradeguardian.data.model.Network
 import com.penguinstudios.tradeguardian.databinding.LayoutSpinnerBinding
 import com.penguinstudios.tradeguardian.databinding.WalletFragmentBinding
 import com.penguinstudios.tradeguardian.ui.resetwallet.ResetWalletFragment
+import com.penguinstudios.tradeguardian.ui.send.SendFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 @AndroidEntryPoint
 class WalletFragment : Fragment(), WalletPopupWindow.Callback {
@@ -49,11 +49,14 @@ class WalletFragment : Fragment(), WalletPopupWindow.Callback {
         }
 
         binding.btnSend.setOnClickListener {
-
+            SendFragment().show(requireActivity().supportFragmentManager, null)
         }
 
         binding.btnReceive.setOnClickListener {
-
+            QrWalletFragment(viewModel.getWalletAddress()).show(
+                requireActivity().supportFragmentManager,
+                null
+            )
         }
 
         binding.btnExportTrades.setOnClickListener {
@@ -78,6 +81,8 @@ class WalletFragment : Fragment(), WalletPopupWindow.Callback {
                 }
             }
         }
+
+        viewModel.getWalletBalance()
     }
 
     private fun initNetworkSpinner() {

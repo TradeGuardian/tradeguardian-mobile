@@ -5,6 +5,7 @@ import com.penguinstudios.tradeguardian.data.model.ContractDeployment
 import com.penguinstudios.tradeguardian.data.model.ContractStatus
 import com.penguinstudios.tradeguardian.data.model.ExchangeRateResponse
 import com.penguinstudios.tradeguardian.data.model.Network
+import com.penguinstudios.tradeguardian.data.validator.EtherAmountValidator
 import com.penguinstudios.tradeguardian.util.Constants
 import com.penguinstudios.tradeguardian.util.CustomGasProvider
 import kotlinx.coroutines.Dispatchers
@@ -15,6 +16,7 @@ import org.web3j.abi.FunctionEncoder
 import org.web3j.abi.datatypes.Address
 import org.web3j.abi.datatypes.Utf8String
 import org.web3j.abi.datatypes.generated.Uint256
+import org.web3j.crypto.WalletUtils
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.core.DefaultBlockParameterName
 import org.web3j.protocol.core.methods.request.Transaction
@@ -35,6 +37,13 @@ class RemoteRepository @Inject constructor(
     private val walletRepository: WalletRepository,
     private val binanceService: BinanceService
 ) {
+
+    suspend fun send(sendToAddress: String, amount: String){
+        return withContext(Dispatchers.IO){
+            require(WalletUtils.isValidAddress(sendToAddress)) { "Not a valid user wallet address" }
+            EtherAmountValidator.validateAmount(amount)
+        }
+    }
 
     suspend fun getWalletBalance(): EthGetBalance {
         return withContext(Dispatchers.IO) {

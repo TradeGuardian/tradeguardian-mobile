@@ -3,7 +3,6 @@ package com.penguinstudios.tradeguardian.ui.wallet
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.penguinstudios.tradeguardian.data.RemoteRepository
-import com.penguinstudios.tradeguardian.data.SharedPrefManager
 import com.penguinstudios.tradeguardian.data.WalletRepository
 import com.penguinstudios.tradeguardian.util.WalletUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,14 +23,9 @@ class WalletViewModel @Inject constructor(
     private val _uiState = MutableSharedFlow<WalletUIState>()
     val uiState = _uiState.asSharedFlow()
 
-    init {
-        getWalletBalance()
-    }
-
     fun getWalletBalance() {
         viewModelScope.launch {
             try {
-                delay(3000)
                 val walletBalance = remoteRepository.getWalletBalance().balance
                 val formattedWalletBalance =
                     WalletUtil.weiToEther(walletBalance).toString() + " BNB"
@@ -49,5 +43,9 @@ class WalletViewModel @Inject constructor(
                 _uiState.emit(WalletUIState.Error("Failed to get wallet balance: " + e.message))
             }
         }
+    }
+
+    fun getWalletAddress(): String {
+        return walletRepository.credentials.address
     }
 }
