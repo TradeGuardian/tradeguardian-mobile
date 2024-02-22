@@ -173,6 +173,6 @@ class CreateWalletViewModel @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
-        walletRepository.clearSensitiveInformation()
+        walletRepository.clearMnemonicLists()
     }
 }

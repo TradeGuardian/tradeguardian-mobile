@@ -7,6 +7,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -29,8 +30,13 @@ class ResetWalletViewModel @Inject constructor(
 
     fun deleteWallet() {
         viewModelScope.launch {
-            walletRepository.clearSensitiveInformation()
-            _uiState.emit(ResetWalletUIState.SuccessResetWallet)
+            try {
+                walletRepository.deleteWallet()
+                _uiState.emit(ResetWalletUIState.SuccessResetWallet)
+            } catch (e: Exception) {
+                Timber.e(e)
+                _uiState.emit(ResetWalletUIState.Error(e.message.toString()))
+            }
         }
     }
 }

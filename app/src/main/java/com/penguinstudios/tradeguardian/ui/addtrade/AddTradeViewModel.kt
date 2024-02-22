@@ -29,9 +29,18 @@ class AddTradeViewModel @Inject constructor(
     fun onConfirm(contractAddress: String) {
         viewModelScope.launch {
             try {
-                val trades = localRepository.getTrades(walletRepository.credentials.address)
+                val userWalletAddress = walletRepository.credentials.address
+                val trades = localRepository.getTrades(userWalletAddress)
                 if (trades.any { trade -> trade.contractAddress == contractAddress }) {
                     _uiState.emit(AddTradeUIState.Error("Trade already exists"))
+                    return@launch
+                }
+
+                val buyerAddress = remoteRepository.getBuyerAddress(contractAddress)
+                val sellerAddress = remoteRepository.getSellerAddress(contractAddress)
+
+                if (buyerAddress != userWalletAddress && sellerAddress != userWalletAddress) {
+                    _uiState.emit(AddTradeUIState.Error("This trade does not belong to you"))
                     return@launch
                 }
 
@@ -39,13 +48,10 @@ class AddTradeViewModel @Inject constructor(
                 val contractStatusId = remoteRepository.getContractStatus(contractAddress)
                 val dateCreated = remoteRepository.getDateCreatedSeconds(contractAddress)
                 val itemPriceWei = remoteRepository.getItemPriceWei(contractAddress)
-                val buyerAddress = remoteRepository.getBuyerAddress(contractAddress)
-                val sellerAddress = remoteRepository.getSellerAddress(contractAddress)
                 val description = remoteRepository.getDescription(contractAddress)
 
                 val userRole: UserRole
                 val counterPartyRole: UserRole
-                val userWalletAddress = walletRepository.credentials.address
                 val counterPartyAddress: String
 
                 if (userWalletAddress == buyerAddress) {

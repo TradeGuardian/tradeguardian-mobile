@@ -8,6 +8,7 @@ import com.penguinstudios.tradeguardian.data.WalletRepository
 import com.penguinstudios.tradeguardian.util.WalletUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
@@ -30,6 +31,7 @@ class WalletViewModel @Inject constructor(
     fun getWalletBalance() {
         viewModelScope.launch {
             try {
+                delay(3000)
                 val walletBalance = remoteRepository.getWalletBalance().balance
                 val formattedWalletBalance =
                     WalletUtil.weiToEther(walletBalance).toString() + " BNB"

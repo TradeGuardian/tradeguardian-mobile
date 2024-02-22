@@ -16,8 +16,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ImportWalletViewModel @Inject constructor(
-    private val walletRepository: WalletRepository,
-    private val filesDir: File
+    private val walletRepository: WalletRepository
 ) : ViewModel() {
 
     private val _uiState = MutableSharedFlow<ImportWalletUIState>()
@@ -29,7 +28,7 @@ class ImportWalletViewModel @Inject constructor(
                 withContext(Dispatchers.IO) {
                     walletRepository.validateMnemonicInput(mnemonic)
                     walletRepository.validateUserPasswordInput(newPassword, confirmPassword)
-                    walletRepository.importWallet(mnemonic, newPassword, filesDir)
+                    walletRepository.importWallet(mnemonic, newPassword)
                 }
                 _uiState.emit(ImportWalletUIState.SuccessImportWallet)
             } catch (e: Exception) {

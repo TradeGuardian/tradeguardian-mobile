@@ -18,7 +18,8 @@ import javax.inject.Singleton
 
 @Singleton
 class WalletRepository @Inject constructor(
-    private val sharedPrefManager: SharedPrefManager
+    private val sharedPrefManager: SharedPrefManager,
+    private val filesDir: File
 ) {
 
     lateinit var credentials: Credentials
@@ -54,18 +55,18 @@ class WalletRepository @Inject constructor(
         mnemonic.isValidMnemonic()
     }
 
-    fun importWallet(mnemonic: String, password: String, filesDirectory: File) {
+    fun importWallet(mnemonic: String, password: String) {
         val derivedKeypair = WalletUtil.deriveKeyPairFromMnemonic(mnemonic)
         val credentials = Credentials.create(derivedKeypair)
         val walletFileName = WalletUtils.generateWalletFile(
-            password, credentials.ecKeyPair, filesDirectory, false
+            password, credentials.ecKeyPair, filesDir, false
         )
 
         this.credentials = credentials
         sharedPrefManager.walletName = walletFileName
     }
 
-    fun unlockWallet(password: String, filesDirectory: File){
+    fun unlockWallet(password: String, filesDirectory: File) {
         val credentials = WalletUtils.loadCredentials(password, filesDirectory)
         this.credentials = credentials
     }
@@ -77,9 +78,6 @@ class WalletRepository @Inject constructor(
 
         sharedPrefManager.walletName = wallet.filename
 
-        Timber.d("Mnemonic: " + wallet.mnemonic)
-        Timber.d("Public key: " + credentials.address)
-
         mnemonicList = wallet.mnemonic.split(" ").toMutableList()
         shuffledMnemonicList = mnemonicList.shuffled().toMutableList()
     }
@@ -88,10 +86,19 @@ class WalletRepository @Inject constructor(
         return mnemonicList.joinToString(separator = " ")
     }
 
-    fun clearSensitiveInformation(){
+    fun deleteWallet() {
+        deleteKeystoreFile()
         sharedPrefManager.walletName = null
+        credentials = Credentials.create(ECKeyPair(BigInteger.ZERO, BigInteger.ZERO))
+    }
+
+    private fun deleteKeystoreFile() {
+        val walletName = sharedPrefManager.walletName ?: return
+        File(filesDir, walletName).delete()
+    }
+
+    fun clearMnemonicLists() {
         mnemonicList.clear()
         shuffledMnemonicList.clear()
-        credentials = Credentials.create(ECKeyPair(BigInteger.ZERO, BigInteger.ZERO))
     }
 }

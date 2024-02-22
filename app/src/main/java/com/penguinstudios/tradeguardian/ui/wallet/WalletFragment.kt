@@ -48,6 +48,18 @@ class WalletFragment : Fragment(), WalletPopupWindow.Callback {
             popupWindow.showAsDropDown(it, -100, 0)
         }
 
+        binding.btnSend.setOnClickListener {
+
+        }
+
+        binding.btnReceive.setOnClickListener {
+
+        }
+
+        binding.btnExportTrades.setOnClickListener {
+
+        }
+
         lifecycleScope.launch {
             viewModel.uiState.collect { uiState ->
                 when (uiState) {

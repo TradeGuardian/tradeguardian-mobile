@@ -19,17 +19,17 @@ class StepIndicatorView @JvmOverloads constructor(
         private const val STEP_RADIUS = 25f
         private const val INDICATOR_TEXT_SIZE_SP = 10f
         private const val LABEL_TEXT_SIZE_SP = 10f
-        private const val ACTIVE_TEXT_COLOR = Color.WHITE
         private const val CIRCLE_STROKE_WIDTH = 4f
         private const val LABEL_OFFSET_Y = 60f
         private val LABELS =
             arrayOf("Create password", "Secure wallet", "Confirm Secret\nRecovery Phrase")
-        private val ACTIVE_STEP_COLOR = Color.parseColor("#BB86FC")
-        private val INACTIVE_STEP_COLOR = Color.parseColor("#808080")
+        private const val WHITE_COLOR = Color.WHITE
+        private val PURPLE_COLOR = Color.parseColor("#BB86FC")
+        private val GREY_COLOR = Color.parseColor("#808080")
     }
 
     private val circleIndicatorPaint = createPaint(Paint.Style.STROKE, CIRCLE_STROKE_WIDTH)
-    private val textPaint = createTextPaint(ACTIVE_TEXT_COLOR, INDICATOR_TEXT_SIZE_SP)
+    private val textPaint = createTextPaint(WHITE_COLOR, INDICATOR_TEXT_SIZE_SP)
     private val labelPaint = createTextPaint(Color.BLACK, LABEL_TEXT_SIZE_SP)
     private var activeStep = 0
     private var stepSpacing: Float = 0f
@@ -80,23 +80,26 @@ class StepIndicatorView @JvmOverloads constructor(
             when {
                 // Completed steps
                 i < activeStep -> {
-                    circleIndicatorPaint.color = ACTIVE_STEP_COLOR
+                    circleIndicatorPaint.color = PURPLE_COLOR
                     circleIndicatorPaint.style = Paint.Style.FILL_AND_STROKE
-                    labelPaint.color = ACTIVE_STEP_COLOR
+                    labelPaint.color = PURPLE_COLOR
+                    textPaint.color = WHITE_COLOR
                 }
 
                 // The current active step
                 i == activeStep -> {
-                    circleIndicatorPaint.color = ACTIVE_STEP_COLOR
+                    circleIndicatorPaint.color = PURPLE_COLOR
                     circleIndicatorPaint.style = Paint.Style.STROKE
-                    labelPaint.color = ACTIVE_STEP_COLOR
+                    labelPaint.color = PURPLE_COLOR
+                    textPaint.color = GREY_COLOR
                 }
 
                 // Future steps
                 else -> {
-                    circleIndicatorPaint.color = INACTIVE_STEP_COLOR
+                    circleIndicatorPaint.color = GREY_COLOR
                     circleIndicatorPaint.style = Paint.Style.STROKE
-                    labelPaint.color = INACTIVE_STEP_COLOR
+                    labelPaint.color = GREY_COLOR
+                    textPaint.color = GREY_COLOR
                 }
             }
 
@@ -109,9 +112,6 @@ class StepIndicatorView @JvmOverloads constructor(
                 circleIndicatorPaint
             )
 
-            // Set text color based on the active step
-            textPaint.color = if (i < activeStep) ACTIVE_TEXT_COLOR else INACTIVE_STEP_COLOR
-
             // Draw text (step number) inside the circle
             val textY = STEP_RADIUS + paddingTop - ((textPaint.descent() + textPaint.ascent()) / 2)
             canvas.drawText((i + 1).toString(), circleCenterX, textY, textPaint)
@@ -120,7 +120,7 @@ class StepIndicatorView @JvmOverloads constructor(
             if (i < NUMBER_OF_STEPS - 1) {
                 circleIndicatorPaint.style = Paint.Style.STROKE // Lines are always hollow
                 circleIndicatorPaint.color =
-                    if (i < activeStep) ACTIVE_STEP_COLOR else INACTIVE_STEP_COLOR
+                    if (i < activeStep) PURPLE_COLOR else GREY_COLOR
                 val nextCircleCenterX = x + 2 * STEP_RADIUS + stepSpacing
                 canvas.drawLine(
                     circleCenterX + STEP_RADIUS,

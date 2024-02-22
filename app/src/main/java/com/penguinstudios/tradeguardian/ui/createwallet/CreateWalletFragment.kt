@@ -51,6 +51,7 @@ class CreateWalletFragment : DialogFragment() {
 
         binding.stepIndicatorView.setActiveStep(0)
         binding.viewpager2.adapter = CreateWalletPagerAdapter(this)
+        binding.viewpager2.isUserInputEnabled = false
 
         lifecycleScope.launch {
             viewModel.uiState.collect { uiState ->
