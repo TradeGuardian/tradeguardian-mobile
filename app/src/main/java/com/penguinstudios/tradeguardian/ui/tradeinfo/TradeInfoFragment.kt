@@ -14,8 +14,12 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.penguinstudios.tradeguardian.R
+import com.penguinstudios.tradeguardian.data.counterPartyRole
+import com.penguinstudios.tradeguardian.data.getFormattedItemPrice
 import com.penguinstudios.tradeguardian.data.model.Network
 import com.penguinstudios.tradeguardian.data.model.Trade
+import com.penguinstudios.tradeguardian.data.networkName
+import com.penguinstudios.tradeguardian.data.userRole
 import com.penguinstudios.tradeguardian.databinding.TradeInfoFragmentBinding
 import com.penguinstudios.tradeguardian.ui.trades.TradesViewModel
 import com.penguinstudios.tradeguardian.util.ClipboardUtil
@@ -30,8 +34,8 @@ class TradeInfoFragment(
     private lateinit var binding: TradeInfoFragmentBinding
     private val tradeInfoViewModel: TradeInfoViewModel by activityViewModels()
     private val tradesViewModel: TradesViewModel by activityViewModels()
-    private lateinit var progressDeposit: AlertDialog
-    private lateinit var progressDelivery: AlertDialog
+    private var progressDeposit: AlertDialog? = null
+    private var progressDelivery: AlertDialog? = null
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         setStyle(STYLE_NORMAL, R.style.Theme_TradeGuardian)
@@ -51,18 +55,18 @@ class TradeInfoFragment(
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        tradeInfoViewModel.trade = trade
+        tradeInfoViewModel.initTrade(trade)
 
         binding.btnBack.setOnClickListener {
             dismiss()
         }
 
         binding.tvContractAddress.text = trade.contractAddress
-        binding.tvDeployedOn.text = trade.getNetwork().networkName
-        binding.tvItemPrice.text = trade.getFormattedItemPrice()
-        binding.tvUserRole.text = trade.getUserRole().roleName
+        binding.tvDeployedOn.text = tradeInfoViewModel.trade.networkName
+        binding.tvItemPrice.text = tradeInfoViewModel.trade.getFormattedItemPrice()
+        binding.tvUserRole.text = tradeInfoViewModel.trade.userRole.roleName
         binding.tvUserWalletAddress.text = trade.userWalletAddress
-        binding.tvCounterPartyRole.text = trade.getCounterpartyRole().roleName
+        binding.tvCounterPartyRole.text = tradeInfoViewModel.trade.counterPartyRole.roleName
         binding.tvCounterpartyWalletAddress.text = trade.counterPartyWalletAddress
         binding.tvDescription.text = trade.description
 
@@ -332,31 +336,35 @@ class TradeInfoFragment(
     }
 
     private fun showProgressDeposit() {
-        val builder = AlertDialog.Builder(requireContext(), R.style.alertDialogTheme)
-        builder.setView(R.layout.progress_deposit)
-        progressDeposit = builder.create().apply {
-            setCancelable(false)
-            setCanceledOnTouchOutside(false)
-            show()
+        if (progressDeposit == null) {
+            val builder = AlertDialog.Builder(requireContext(), R.style.alertDialogTheme)
+            builder.setView(R.layout.progress_deposit)
+            progressDeposit = builder.create().apply {
+                setCancelable(false)
+                setCanceledOnTouchOutside(false)
+            }
         }
+        progressDeposit?.show()
     }
 
     private fun hideProgressDeposit() {
-        progressDeposit.hide()
+        progressDeposit?.hide()
     }
 
     private fun showProgressDelivery() {
-        val builder = AlertDialog.Builder(requireContext(), R.style.alertDialogTheme)
-        builder.setView(R.layout.progress_delivery)
-        progressDelivery = builder.create().apply {
-            setCancelable(false)
-            setCanceledOnTouchOutside(false)
-            show()
+        if (progressDelivery == null) {
+            val builder = AlertDialog.Builder(requireContext(), R.style.alertDialogTheme)
+            builder.setView(R.layout.progress_delivery)
+            progressDelivery = builder.create().apply {
+                setCancelable(false)
+                setCanceledOnTouchOutside(false)
+            }
         }
+        progressDelivery?.show()
     }
 
     private fun hideProgressDelivery() {
-        progressDelivery.hide()
+        progressDelivery?.hide()
     }
 
     private fun openBrowser() {

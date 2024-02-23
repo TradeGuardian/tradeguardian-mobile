@@ -73,15 +73,13 @@ class Trade(
     }
 
     companion object {
-        private val dateFormatter = SimpleDateFormat(Constants.DATE_PATTERN, Locale.US)
         fun builder(): NetworkStep = Builder()
     }
 
     private class Builder : NetworkStep, ContractAddressStep, ContractStatusIdStep,
-        DateCreatedMillisStep,
-        ItemPriceWeiStep, GasCostWeiStep, UserRoleIdStep, UserWalletAddressStep,
-        CounterPartyRoleIdStep,
-        CounterPartyWalletAddressStep, DescriptionStep, BuildStep {
+        DateCreatedMillisStep, ItemPriceWeiStep, GasCostWeiStep, UserRoleIdStep, UserWalletAddressStep,
+        CounterPartyRoleIdStep, CounterPartyWalletAddressStep, DescriptionStep, BuildStep {
+
         private var id: Int = 0 //Placeholder, will be replaced by Room upon insertion
         private var networkId: Int = 0
         private lateinit var contractAddress: String
@@ -100,7 +98,7 @@ class Trade(
         }
 
         override fun contractAddress(address: String) = apply {
-            this.contractAddress = address
+            this.contractAddress = address.lowercase()
         }
 
         override fun contractStatus(status: ContractStatus) = apply {
@@ -156,82 +154,5 @@ class Trade(
                 description
             )
         }
-    }
-
-    fun getFormattedItemPrice(): String {
-        return WalletUtil.weiToEther(itemPriceWei.toBigInteger()).toString() + " " +
-                Network.getNetworkById(networkId).networkTokenName
-    }
-
-    fun getFormattedGasCost(): String {
-        return WalletUtil.weiToEther(gasCostWei.toBigInteger()).toString() + " " +
-                Network.getNetworkById(networkId).networkTokenName
-    }
-
-    fun getFormattedDateCreated(): String {
-        return dateFormatter.format(dateCreatedMillis)
-    }
-
-    fun getNetwork(): Network {
-        return Network.getNetworkById(networkId)
-    }
-
-    fun getUserRole(): UserRole {
-        return UserRole.getUserRoleById(userRoleId)
-    }
-
-    fun getCounterpartyRole(): UserRole {
-        return UserRole.getUserRoleById(counterPartyRoleId)
-    }
-
-    fun getSellerDepositAmount(): BigInteger {
-        return BigInteger.valueOf(itemPriceWei)
-            .multiply(Constants.SELLER_DEPOSIT_MULTIPLIER.toBigInteger())
-    }
-
-    fun getBuyerDepositAmount(): BigInteger {
-        return BigInteger.valueOf(itemPriceWei)
-            .multiply(Constants.BUYER_DEPOSIT_MULTIPLIER.toBigInteger())
-    }
-
-    fun getFormattedSellerDepositAmountEther(): String {
-        return WalletUtil.weiToEther(getSellerDepositAmount())
-            .toString() + " " + getNetwork().networkTokenName
-    }
-
-    fun getFormattedBuyerDepositAmountEther(): String {
-        return WalletUtil.weiToEther(getBuyerDepositAmount())
-            .toString() + " " + getNetwork().networkTokenName
-    }
-
-    private fun calculateSuccessfulTxFeePerParty(): BigInteger {
-        val onePercentOfItemPrice = BigInteger.valueOf(itemPriceWei)
-            .multiply(BigInteger.valueOf(Constants.FEE_PERCENTAGE.toLong())) / BigInteger.valueOf(
-            100
-        )
-        return onePercentOfItemPrice.divide(BigInteger.valueOf(2))
-    }
-
-    private fun getAmountReturnedToSeller(): BigInteger {
-        return BigInteger.valueOf(itemPriceWei) - calculateSuccessfulTxFeePerParty()
-    }
-
-    private fun getAmountReturnedToBuyer(): BigInteger {
-        return BigInteger.valueOf(itemPriceWei) - calculateSuccessfulTxFeePerParty()
-    }
-
-    fun getFormattedAmountReturnedToSeller(): String {
-        return WalletUtil.weiToEther(getAmountReturnedToSeller())
-            .toString() + " " + getNetwork().networkTokenName
-    }
-
-    fun getFormattedAmountReturnedToBuyer(): String {
-        return WalletUtil.weiToEther(getAmountReturnedToBuyer())
-            .toString() + " " + getNetwork().networkTokenName
-    }
-
-    fun getFormattedPercentFeePerParty(): String {
-        return WalletUtil.weiToEther(calculateSuccessfulTxFeePerParty())
-            .toString() + " " + getNetwork().networkTokenName
     }
 }

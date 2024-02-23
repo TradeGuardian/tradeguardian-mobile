@@ -1,5 +1,6 @@
 package com.penguinstudios.tradeguardian.util
 
+import com.penguinstudios.tradeguardian.data.model.Network
 import org.web3j.crypto.Bip32ECKeyPair
 import org.web3j.crypto.MnemonicUtils
 import java.math.BigDecimal
@@ -34,5 +35,11 @@ object WalletUtil {
     fun formatToUSD(value: BigDecimal): String {
         val format = NumberFormat.getCurrencyInstance(Locale.US)
         return format.format(value) + " USD"
+    }
+
+    fun weiToNetworkToken(amountWei: BigInteger, network: Network) : String{
+        val divisor = BigDecimal.TEN.pow(18)
+        val ether = BigDecimal(amountWei).divide(divisor, 5, RoundingMode.HALF_UP)
+        return "$ether ${network.networkTokenName}"
     }
 }

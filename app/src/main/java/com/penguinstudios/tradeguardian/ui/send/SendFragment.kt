@@ -7,18 +7,17 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 import com.penguinstudios.tradeguardian.R
 import com.penguinstudios.tradeguardian.data.model.Network
-import com.penguinstudios.tradeguardian.databinding.AddTradeFragmentBinding
 import com.penguinstudios.tradeguardian.databinding.LayoutSpinnerBinding
 import com.penguinstudios.tradeguardian.databinding.SendFragmentBinding
-import com.penguinstudios.tradeguardian.ui.trades.TradesViewModel
+import com.penguinstudios.tradeguardian.util.KeyboardUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -27,6 +26,8 @@ class SendFragment : DialogFragment() {
 
     private lateinit var binding: SendFragmentBinding
     private lateinit var spinnerBinding: LayoutSpinnerBinding
+    private val sendViewModel: SendViewModel by viewModels()
+    private var progressSend: AlertDialog? = null
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         setStyle(STYLE_NORMAL, R.style.Theme_TradeGuardian)
@@ -56,7 +57,47 @@ class SendFragment : DialogFragment() {
             initScanner()
         }
 
+        binding.btnConfirm.setOnClickListener {
+            KeyboardUtils.hideKeyboard(binding.etAmount)
+            
+            sendViewModel.onSend(
+                binding.etSendToAddress.text.toString(),
+                binding.etAmount.text.toString()
+            )
+        }
+
         initSpinner()
+
+        lifecycleScope.launch {
+            sendViewModel.uiState.collect { uiState ->
+                when (uiState) {
+                    is SendUIState.SuccessfulSend -> {
+                        dismiss()
+
+                        SuccessSendFragment(
+                            uiState.userWalletAddress,
+                            uiState.txHash,
+                            uiState.sentToAddress,
+                            uiState.formattedAmountSent,
+                            uiState.formattedGasUsed
+                        ).show(requireActivity().supportFragmentManager, null)
+                    }
+
+                    is SendUIState.ShowProgressSend -> {
+                        binding.parentLayout.clearFocus()
+                        showProgressSend()
+                    }
+
+                    is SendUIState.HideProgressSend -> {
+                        hideProgressSend()
+                    }
+
+                    is SendUIState.Error -> {
+                        Toast.makeText(requireContext(), uiState.message, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
     }
 
     private fun initSpinner() {
@@ -88,5 +129,21 @@ class SendFragment : DialogFragment() {
         options.setBeepEnabled(false)
         options.setOrientationLocked(true)
         barcodeLauncher.launch(options)
+    }
+
+    private fun showProgressSend() {
+        if (progressSend == null) {
+            val builder = AlertDialog.Builder(requireContext(), R.style.alertDialogTheme)
+            builder.setView(R.layout.progress_send)
+            progressSend = builder.create().apply {
+                setCancelable(false)
+                setCanceledOnTouchOutside(false)
+            }
+        }
+        progressSend?.show()
+    }
+
+    private fun hideProgressSend() {
+        progressSend?.hide()
     }
 }

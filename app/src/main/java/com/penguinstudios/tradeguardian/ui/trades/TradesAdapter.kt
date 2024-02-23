@@ -7,6 +7,8 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.penguinstudios.tradeguardian.R
+import com.penguinstudios.tradeguardian.data.getFormattedDateCreated
+import com.penguinstudios.tradeguardian.data.getFormattedItemPrice
 import com.penguinstudios.tradeguardian.data.model.ContractStatus
 import com.penguinstudios.tradeguardian.data.model.Trade
 

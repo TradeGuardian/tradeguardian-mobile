@@ -2,15 +2,14 @@ package com.penguinstudios.tradeguardian.data.model
 
 enum class Network(
     val id: Int,
-    val baseUrl: String?,
+    val baseUrl: String,
     val networkName: String,
-    val networkTokenName: String?,
+    val networkTokenName: String,
     val chainId: Int,
-    val explorerUrl: String?
+    val explorerUrl: String
 ) {
-    NONE_SELECTED(0, null, "Select Network", null, -1, null),
     TEST_NET(
-        1,
+        0,
         "https://data-seed-prebsc-1-s1.bnbchain.org:8545/",
         "BNB Smart Chain Testnet",
         "BNB",
@@ -18,7 +17,7 @@ enum class Network(
         "https://testnet.bscscan.com/address/"
     ),
     MAIN_NET(
-        2,
+        1,
         "https://1rpc.io/bnb",
         "BNB Smart Chain Mainnet",
         "BNB",

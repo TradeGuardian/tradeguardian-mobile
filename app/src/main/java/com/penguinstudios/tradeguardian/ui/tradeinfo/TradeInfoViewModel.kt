@@ -5,10 +5,21 @@ import androidx.lifecycle.viewModelScope
 import com.penguinstudios.tradeguardian.data.LocalRepository
 import com.penguinstudios.tradeguardian.data.RemoteRepository
 import com.penguinstudios.tradeguardian.data.WalletRepository
+import com.penguinstudios.tradeguardian.data.counterPartyRole
+import com.penguinstudios.tradeguardian.data.getBuyerDepositAmount
+import com.penguinstudios.tradeguardian.data.getFormattedAmountReturnedToBuyer
+import com.penguinstudios.tradeguardian.data.getFormattedAmountReturnedToSeller
+import com.penguinstudios.tradeguardian.data.getFormattedBuyerDepositAmount
+import com.penguinstudios.tradeguardian.data.getFormattedItemPrice
+import com.penguinstudios.tradeguardian.data.getFormattedPercentFeePerParty
+import com.penguinstudios.tradeguardian.data.getFormattedSellerDepositAmount
+import com.penguinstudios.tradeguardian.data.getSellerDepositAmount
 import com.penguinstudios.tradeguardian.data.model.ContractStatus
-import com.penguinstudios.tradeguardian.data.model.Network
 import com.penguinstudios.tradeguardian.data.model.Trade
 import com.penguinstudios.tradeguardian.data.model.UserRole
+import com.penguinstudios.tradeguardian.data.network
+import com.penguinstudios.tradeguardian.data.networkTokenName
+import com.penguinstudios.tradeguardian.data.userRole
 import com.penguinstudios.tradeguardian.util.CustomGasProvider
 import com.penguinstudios.tradeguardian.util.WalletUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -29,6 +40,10 @@ class TradeInfoViewModel @Inject constructor(
     val uiState = _uiState.asSharedFlow()
     lateinit var trade: Trade
 
+    fun initTrade(trade: Trade) {
+        this.trade = trade
+    }
+
     fun deposit() {
         viewModelScope.launch {
             try {
@@ -44,7 +59,7 @@ class TradeInfoViewModel @Inject constructor(
                     return@launch
                 }
 
-                val txReceipt = if (trade.getUserRole() == UserRole.SELLER) {
+                val txReceipt = if (trade.userRole == UserRole.SELLER) {
                     remoteRepository.sellerDeposit(
                         trade.contractAddress,
                         trade.getSellerDepositAmount()
@@ -56,18 +71,17 @@ class TradeInfoViewModel @Inject constructor(
                     )
                 }
 
-
-                val formattedDepositAmount = if (trade.getUserRole() == UserRole.SELLER) {
-                    getFormattedSellerDepositAmount()
+                val formattedDepositAmount = if (trade.userRole == UserRole.SELLER) {
+                    trade.getFormattedSellerDepositAmount()
                 } else {
-                    getFormattedBuyerDepositAmount()
+                    trade.getFormattedBuyerDepositAmount()
                 }
 
                 _uiState.emit(TradeInfoUIState.HideProgressDeposit)
 
-                val calculateGasCostEther = txReceipt.gasUsed.multiply(CustomGasProvider.GAS_PRICE)
-                val formattedGasCost = WalletUtil.weiToEther(calculateGasCostEther)
-                    .toString() + " " + trade.getNetwork().networkTokenName
+                val gasCostEther =
+                    WalletUtil.weiToEther(txReceipt.gasUsed.multiply(CustomGasProvider.GAS_PRICE))
+                val formattedGasCost = "$gasCostEther ${trade.networkTokenName}"
 
                 _uiState.emit(
                     TradeInfoUIState.SuccessDeposit(
@@ -121,18 +135,18 @@ class TradeInfoViewModel @Inject constructor(
                 setDepositStatus(
                     contractStatus,
                     hasUserDeposited,
-                    trade.getUserRole()
+                    trade.userRole
                 )
 
                 setDepositStatus(
                     contractStatus,
                     hasCounterPartyDeposited,
-                    trade.getCounterpartyRole()
+                    trade.counterPartyRole
                 )
 
                 setDepositBtnState(contractStatus, hasUserDeposited)
                 setCurrentStepIndicator(contractStatus)
-                setAwaitingDeliveryBtnState(contractStatus, trade.getUserRole())
+                setAwaitingDeliveryBtnState(contractStatus, trade.userRole)
                 setItemDeliveryStatus(contractStatus)
                 setReturnDepositStatus(contractStatus)
             } catch (e: Exception) {
@@ -217,13 +231,13 @@ class TradeInfoViewModel @Inject constructor(
             if (hasDeposited) {
                 when (userRole) {
                     UserRole.SELLER -> {
-                        val formattedSellerDepositAmount = trade.getFormattedSellerDepositAmountEther()
+                        val formattedSellerDepositAmount = trade.getFormattedSellerDepositAmount()
                         val depositStatus = "Seller has deposited $formattedSellerDepositAmount"
                         _uiState.emit(TradeInfoUIState.UpdateSellerDepositStatus(depositStatus, true))
                     }
 
                     UserRole.BUYER -> {
-                        val formattedBuyerDepositAmount = trade.getFormattedBuyerDepositAmountEther()
+                        val formattedBuyerDepositAmount = trade.getFormattedBuyerDepositAmount()
                         val depositStatus = "Buyer has deposited $formattedBuyerDepositAmount"
                         _uiState.emit(TradeInfoUIState.UpdateBuyerDepositStatus(depositStatus, true))
                     }
@@ -244,13 +258,13 @@ class TradeInfoViewModel @Inject constructor(
             //Has already deposited
             when (userRole) {
                 UserRole.SELLER -> {
-                    val formattedSellerDepositAmount = trade.getFormattedSellerDepositAmountEther()
+                    val formattedSellerDepositAmount = trade.getFormattedSellerDepositAmount()
                     val depositStatus = "Seller has deposited $formattedSellerDepositAmount"
                     _uiState.emit(TradeInfoUIState.UpdateSellerDepositStatus(depositStatus, true))
                 }
 
                 UserRole.BUYER -> {
-                    val formattedBuyerDepositAmount = trade.getFormattedBuyerDepositAmountEther()
+                    val formattedBuyerDepositAmount = trade.getFormattedBuyerDepositAmount()
                     val depositStatus = "Buyer has deposited $formattedBuyerDepositAmount"
                     _uiState.emit(TradeInfoUIState.UpdateBuyerDepositStatus(depositStatus, true))
                 }
@@ -288,16 +302,6 @@ class TradeInfoViewModel @Inject constructor(
         }
     }
 
-    fun getFormattedSellerDepositAmount(): String {
-        return WalletUtil.weiToEther(trade.getSellerDepositAmount()).toString() + " " +
-                Network.getNetworkById(trade.networkId).networkTokenName
-    }
-
-    fun getFormattedBuyerDepositAmount(): String {
-        return WalletUtil.weiToEther(trade.getBuyerDepositAmount()).toString() + " " +
-                Network.getNetworkById(trade.networkId).networkTokenName
-    }
-
     fun correctItemReceived() {
         viewModelScope.launch {
             try {
@@ -305,16 +309,14 @@ class TradeInfoViewModel @Inject constructor(
                 val txReceipt = remoteRepository.correctItemReceived(trade.contractAddress)
                 _uiState.emit(TradeInfoUIState.HideItemDeliveryProgress)
 
-                val calculateGasCostEther = txReceipt.gasUsed.multiply(CustomGasProvider.GAS_PRICE)
-                val formattedGasCost = WalletUtil.weiToEther(calculateGasCostEther)
-                    .toString() + " " + trade.getNetwork().networkTokenName
+                val gasCostWei = txReceipt.gasUsed.multiply(CustomGasProvider.GAS_PRICE)
 
                 _uiState.emit(
                     TradeInfoUIState.SuccessChangeDeliveryState(
                         trade.contractAddress,
                         txReceipt.transactionHash,
                         ContractStatus.ITEM_RECEIVED.statusName,
-                        formattedGasCost
+                        WalletUtil.weiToNetworkToken(gasCostWei, trade.network)
                     )
                 )
             } catch (e: Exception) {
@@ -333,16 +335,14 @@ class TradeInfoViewModel @Inject constructor(
                 val txReceipt = remoteRepository.incorrectItemReceived(trade.contractAddress)
                 _uiState.emit(TradeInfoUIState.HideItemDeliveryProgress)
 
-                val calculateGasCostEther = txReceipt.gasUsed.multiply(CustomGasProvider.GAS_PRICE)
-                val formattedGasCost = WalletUtil.weiToEther(calculateGasCostEther)
-                    .toString() + " " + trade.getNetwork().networkTokenName
+                val gasCostWei = txReceipt.gasUsed.multiply(CustomGasProvider.GAS_PRICE)
 
                 _uiState.emit(
                     TradeInfoUIState.SuccessChangeDeliveryState(
                         trade.contractAddress,
                         txReceipt.transactionHash,
                         ContractStatus.ITEM_INCORRECT.statusName,
-                        formattedGasCost
+                        WalletUtil.weiToNetworkToken(gasCostWei, trade.network)
                     )
                 )
             } catch (e: Exception) {
@@ -360,16 +360,14 @@ class TradeInfoViewModel @Inject constructor(
                 val txReceipt = remoteRepository.itemDelivered(trade.contractAddress)
                 _uiState.emit(TradeInfoUIState.HideItemDeliveryProgress)
 
-                val calculateGasCostEther = txReceipt.gasUsed.multiply(CustomGasProvider.GAS_PRICE)
-                val formattedGasCost = WalletUtil.weiToEther(calculateGasCostEther)
-                    .toString() + " " + trade.getNetwork().networkTokenName
+                val gasCostWei = txReceipt.gasUsed.multiply(CustomGasProvider.GAS_PRICE)
 
                 _uiState.emit(
                     TradeInfoUIState.SuccessChangeDeliveryState(
                         trade.contractAddress,
                         txReceipt.transactionHash,
                         ContractStatus.ITEM_SENT.statusName,
-                        formattedGasCost
+                        WalletUtil.weiToNetworkToken(gasCostWei, trade.network)
                     )
                 )
             } catch (e: Exception) {

@@ -1,18 +1,29 @@
 package com.penguinstudios.tradeguardian.data.validator
 
+import java.math.BigDecimal
+
 object EtherAmountValidator {
 
-    fun validateAmount(amount: String) {
+    fun validateAndConvert(amount: String): BigDecimal {
         require(amount.isNotEmpty()) { "No amount entered" }
 
-        // Item price must not start with '0' unless it is a decimal number starting with '0.'
         if (amount.startsWith("0") && !amount.matches(Regex("^0\\.\\d+$"))) {
             throw IllegalArgumentException("Invalid amount")
         }
 
-        // Item price must not have trailing decimal points '1.'
         if (amount.matches(Regex(".*\\.$"))) {
             throw IllegalArgumentException("Invalid amount: trailing decimal point")
         }
+
+        val itemPriceDecimal = try {
+            BigDecimal(amount)
+        } catch (e: NumberFormatException) {
+            throw IllegalArgumentException("Invalid item price, not a number")
+        }
+
+        require(itemPriceDecimal > BigDecimal.ZERO) { "Item price must be greater than 0" }
+
+        return itemPriceDecimal
     }
 }
+

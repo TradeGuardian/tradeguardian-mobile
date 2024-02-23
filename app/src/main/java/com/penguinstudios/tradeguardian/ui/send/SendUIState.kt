@@ -2,11 +2,14 @@ package com.penguinstudios.tradeguardian.ui.send
 
 sealed class SendUIState {
     data class SuccessfulSend(
-        private val txHash: String,
-        private val sentToAddress: String,
-        private val formattedAmountSent: String,
-        private val formattedGasUsed: String
+        val userWalletAddress: String,
+        val txHash: String,
+        val sentToAddress: String,
+        val formattedAmountSent: String,
+        val formattedGasUsed: String
     ) : SendUIState()
 
+    object ShowProgressSend : SendUIState()
+    object HideProgressSend : SendUIState()
     data class Error(val message: String) : SendUIState()
 }

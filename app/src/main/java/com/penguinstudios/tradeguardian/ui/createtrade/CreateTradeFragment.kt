@@ -19,6 +19,7 @@ import com.penguinstudios.tradeguardian.databinding.CreateTradeFragmentBinding
 import com.penguinstudios.tradeguardian.databinding.LayoutSpinnerBinding
 import com.penguinstudios.tradeguardian.ui.confirmtrade.ConfirmTradeFragment
 import com.penguinstudios.tradeguardian.ui.trades.TradesViewModel
+import com.penguinstudios.tradeguardian.util.KeyboardUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -59,6 +60,8 @@ class CreateTradeFragment : Fragment() {
                 Toast.makeText(requireContext(), "No user role selected", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+
+            KeyboardUtils.hideKeyboard(binding.etDescription)
 
             createTradeViewModel.onCreateTradeClick(
                 userRole,

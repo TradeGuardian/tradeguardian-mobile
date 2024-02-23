@@ -6,15 +6,16 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
+import com.penguinstudios.tradeguardian.data.getFormattedBuyerDepositAmount
+import com.penguinstudios.tradeguardian.data.getFormattedItemPrice
+import com.penguinstudios.tradeguardian.data.getFormattedSellerDepositAmount
 import com.penguinstudios.tradeguardian.data.model.UserRole
 import com.penguinstudios.tradeguardian.databinding.ConfirmDepositFragmentBinding
 import com.penguinstudios.tradeguardian.util.Constants
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class ConfirmDepositFragment(
-
-) : DialogFragment() {
+class ConfirmDepositFragment : DialogFragment() {
 
     private lateinit var binding: ConfirmDepositFragmentBinding
     private val viewModel: TradeInfoViewModel by activityViewModels()
@@ -44,13 +45,15 @@ class ConfirmDepositFragment(
         binding.tvItemPrice.text = viewModel.trade.getFormattedItemPrice()
         val userRole: UserRole = UserRole.getUserRoleById(viewModel.trade.userRoleId)
         if (userRole == UserRole.SELLER) {
-            binding.tvDepositDescription.text =
+            val description =
                 "The seller must deposit ${Constants.SELLER_DEPOSIT_MULTIPLIER}x the item price."
-            binding.tvDepositAmount.text = viewModel.getFormattedSellerDepositAmount()
+            binding.tvDepositDescription.text = description
+            binding.tvDepositAmount.text = viewModel.trade.getFormattedSellerDepositAmount()
         } else {
-            binding.tvDepositDescription.text =
+            val description =
                 "The buyer must deposit ${Constants.BUYER_DEPOSIT_MULTIPLIER}x the item price."
-            binding.tvDepositAmount.text = viewModel.getFormattedBuyerDepositAmount()
+            binding.tvDepositDescription.text = description
+            binding.tvDepositAmount.text = viewModel.trade.getFormattedBuyerDepositAmount()
         }
 
         binding.btnConfirm.setOnClickListener {

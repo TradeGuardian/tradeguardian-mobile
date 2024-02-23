@@ -3,9 +3,10 @@ package com.penguinstudios.tradeguardian.ui.createtrade
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.penguinstudios.tradeguardian.data.LocalRepository
-import com.penguinstudios.tradeguardian.data.model.ContractDeployment
 import com.penguinstudios.tradeguardian.data.RemoteRepository
 import com.penguinstudios.tradeguardian.data.WalletRepository
+import com.penguinstudios.tradeguardian.data.getFormattedGasCost
+import com.penguinstudios.tradeguardian.data.model.ContractDeployment
 import com.penguinstudios.tradeguardian.data.model.ContractStatus
 import com.penguinstudios.tradeguardian.data.model.ExchangeRateResponse
 import com.penguinstudios.tradeguardian.data.model.Network
@@ -76,7 +77,7 @@ class CreateTradeViewModel @Inject constructor(
                 // Start all operations concurrently
                 val gasPriceDeferred = async { estimateGasPrice() }
                 val gasLimitDeferred = async { estimateDeployContractGasLimit(contractDeployment) }
-                val exchangeRateDeferred = async { getBnbUsdtExchangeRate() }
+                val exchangeRateDeferred = async { getBnbUsdExchangeRate() }
 
                 // Await all results
                 val gasPriceResult = gasPriceDeferred.await()
@@ -144,9 +145,9 @@ class CreateTradeViewModel @Inject constructor(
         }
     }
 
-    private suspend fun getBnbUsdtExchangeRate(): ExchangeRateResponse? {
+    private suspend fun getBnbUsdExchangeRate(): ExchangeRateResponse? {
         return try {
-            remoteRepository.getBnbUsdtExchangeRate()
+            remoteRepository.getBnbUsdExchangeRate()
         } catch (e: TimeoutCancellationException) {
             Timber.e("Get BNB/USD exchange rate timed out")
             null
@@ -166,8 +167,6 @@ class CreateTradeViewModel @Inject constructor(
                 )
 
                 val contractAddress = txReceipt.contractAddress
-                val amountEtherUsedWei = txReceipt.gasUsed.multiply(gasPrice)
-
                 val dateCreatedSeconds = remoteRepository.getDateCreatedSeconds(contractAddress)
 
                 val trade = Trade.builder()
@@ -176,7 +175,7 @@ class CreateTradeViewModel @Inject constructor(
                     .contractStatus(ContractStatus.AWAITING_DEPOSIT)
                     .dateCreatedSeconds(dateCreatedSeconds)
                     .itemPriceWei(contractDeployment.itemPriceWei)
-                    .gasCostWei(amountEtherUsedWei)
+                    .gasCostWei(txReceipt.gasUsed.multiply(gasPrice))
                     .userRole(contractDeployment.userRole)
                     .userWalletAddress(contractDeployment.userWalletAddress)
                     .counterPartyRole(contractDeployment.counterPartyRole)

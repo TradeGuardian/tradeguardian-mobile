@@ -1,7 +1,9 @@
 package com.penguinstudios.tradeguardian.data.model
 
 import com.penguinstudios.tradeguardian.data.validator.EtherAmountValidator
+import com.penguinstudios.tradeguardian.util.WalletUtil
 import org.web3j.crypto.WalletUtils
+import timber.log.Timber
 import java.math.BigDecimal
 import java.math.BigInteger
 
@@ -57,6 +59,7 @@ class ContractDeployment private constructor(
 
     private class Builder : NetworkStep, FeeRecipientAddressStep, UserRoleStep, ItemPriceStep,
         DescriptionStep, UserWalletAddressStep, CounterPartyAddressStep, BuildStep {
+
         private lateinit var network: Network
         private lateinit var feeRecipientAddress: String
         private lateinit var userRole: UserRole
@@ -78,7 +81,6 @@ class ContractDeployment private constructor(
         }
 
         override fun itemPrice(itemPrice: String) = apply {
-            EtherAmountValidator.validateAmount(itemPrice)
             this.itemPrice = itemPrice
         }
 
@@ -114,19 +116,13 @@ class ContractDeployment private constructor(
                 buyerAddress = counterPartyAddress
             }
 
-            val itemPriceDecimal = try {
-                BigDecimal(itemPrice)
-            } catch (e: NumberFormatException) {
-                throw IllegalArgumentException("Invalid item price, not a number")
+            require(sellerAddress.lowercase() != buyerAddress.lowercase()) {
+                "Buyer and seller addresses cannot be the same"
             }
 
-            require(itemPriceDecimal > BigDecimal.ZERO) { "Item price must be greater than 0" }
+            val itemPriceDecimal = EtherAmountValidator.validateAndConvert(itemPrice)
             val itemPriceWei = itemPriceDecimal.multiply(BigDecimal.TEN.pow(18)).toBigInteger()
-            val itemPriceFormatted = itemPrice + " " + network.networkTokenName
-
-            require(WalletUtils.isValidAddress(sellerAddress)) { "Not a valid seller address" }
-            require(WalletUtils.isValidAddress(buyerAddress)) { "Not a valid buyer address" }
-            require(sellerAddress.lowercase() != buyerAddress.lowercase()) { "Buyer and seller addresses cannot be the same" }
+            val itemPriceFormatted = "$itemPrice ${network.networkTokenName}"
 
             return ContractDeployment(
                 network,

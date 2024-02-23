@@ -18,6 +18,7 @@ import com.penguinstudios.tradeguardian.ui.createtrade.CreateTradeViewModel
 import com.penguinstudios.tradeguardian.ui.createtrade.SuccessCreateTradeFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @AndroidEntryPoint
 class ConfirmTradeFragment(
@@ -26,7 +27,7 @@ class ConfirmTradeFragment(
 
     private lateinit var binding: ConfirmCreateTradeFragmentBinding
     private val viewModel: CreateTradeViewModel by viewModels({ requireActivity() })
-    private lateinit var progressCreateContract: AlertDialog
+    private var progressCreateContract: AlertDialog? = null
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         setStyle(STYLE_NORMAL, R.style.Theme_TradeGuardian)
@@ -148,16 +149,18 @@ class ConfirmTradeFragment(
     }
 
     private fun showProgressDialog() {
-        val builder = AlertDialog.Builder(requireContext(), R.style.alertDialogTheme)
-        builder.setView(R.layout.progress_create_contract)
-        progressCreateContract = builder.create().apply {
-            setCancelable(false)
-            setCanceledOnTouchOutside(false)
-            show()
+        if (progressCreateContract == null) {
+            val builder = AlertDialog.Builder(requireContext(), R.style.alertDialogTheme)
+            builder.setView(R.layout.progress_create_contract)
+            progressCreateContract = builder.create().apply {
+                setCancelable(false)
+                setCanceledOnTouchOutside(false)
+            }
         }
+        progressCreateContract?.show()
     }
 
     private fun hideProgressDialog() {
-        progressCreateContract.hide()
+        progressCreateContract?.hide()
     }
 }

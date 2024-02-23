@@ -8,6 +8,7 @@ import com.penguinstudios.tradeguardian.data.model.Network
 import com.penguinstudios.tradeguardian.data.validator.EtherAmountValidator
 import com.penguinstudios.tradeguardian.util.Constants
 import com.penguinstudios.tradeguardian.util.CustomGasProvider
+import com.penguinstudios.tradeguardian.util.WalletUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.withContext
@@ -25,11 +26,16 @@ import org.web3j.protocol.core.methods.response.EthGasPrice
 import org.web3j.protocol.core.methods.response.EthGetBalance
 import org.web3j.protocol.core.methods.response.TransactionReceipt
 import org.web3j.tx.FastRawTransactionManager
+import org.web3j.tx.Transfer
 import org.web3j.tx.gas.DefaultGasProvider
 import org.web3j.tx.gas.StaticGasProvider
+import org.web3j.utils.Convert
+import timber.log.Timber
+import java.math.BigDecimal
 import java.math.BigInteger
 import javax.inject.Inject
 import javax.inject.Singleton
+
 
 @Singleton
 class RemoteRepository @Inject constructor(
@@ -38,10 +44,19 @@ class RemoteRepository @Inject constructor(
     private val binanceService: BinanceService
 ) {
 
-    suspend fun send(sendToAddress: String, amount: String){
-        return withContext(Dispatchers.IO){
+    suspend fun send(sendToAddress: String, amount: String) : TransactionReceipt {
+        return withContext(Dispatchers.IO) {
             require(WalletUtils.isValidAddress(sendToAddress)) { "Not a valid user wallet address" }
-            EtherAmountValidator.validateAmount(amount)
+
+            val itemPriceDecimal = EtherAmountValidator.validateAndConvert(amount)
+
+            Transfer.sendFunds(
+                web3j,
+                walletRepository.credentials,
+                sendToAddress,
+                itemPriceDecimal,
+                Convert.Unit.ETHER
+            ).sendAsync().await()
         }
     }
 
@@ -172,7 +187,7 @@ class RemoteRepository @Inject constructor(
         }
     }
 
-    suspend fun getBnbUsdtExchangeRate(): ExchangeRateResponse {
+    suspend fun getBnbUsdExchangeRate(): ExchangeRateResponse {
         return withContext(Dispatchers.IO) {
             binanceService.getPrice(Constants.BNB_USDT_EXCHANGE_RATE_SYMBOL)
         }
