@@ -1,7 +1,6 @@
 package com.penguinstudios.tradeguardian.util
 
 object Constants {
-    const val GITHUB_URL: String = ""
     const val CONTRACT_BIN: String = "contract_binary_code.txt"
     const val FEE_RECIPIENT: String = "0x64ed56c19182aa10d4c0dc0db979d9c407c6b0c3"
     const val BINANCE_API_BASE_URL = "https://www.binance.com/api/v3/ticker/"
@@ -10,5 +9,7 @@ object Constants {
     const val BUYER_DEPOSIT_MULTIPLIER = 2
     const val SELLER_DEPOSIT_MULTIPLIER = 1
     // 1% fee of item price if successful transaction between both parties
-    const val FEE_PERCENTAGE = 1;
+    const val FEE_PERCENTAGE = 1
+    const val MILLIS_PER_SECOND = 1000
+    const val TWO_HOURS_IN_SECONDS = 7200
 }

@@ -4,10 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.penguinstudios.tradeguardian.util.Constants
-import com.penguinstudios.tradeguardian.util.WalletUtil
 import java.math.BigInteger
-import java.text.SimpleDateFormat
-import java.util.Locale
 
 @Entity(tableName = "trades")
 class Trade(
@@ -16,6 +13,7 @@ class Trade(
     @ColumnInfo(name = "contract_address") val contractAddress: String,
     @ColumnInfo(name = "contract_status_id") val contractStatusId: Int,
     @ColumnInfo(name = "date_created_millis") val dateCreatedMillis: Long,
+    @ColumnInfo(name = "withdrawal_eligibility_date") val withdrawEligibilityDate: Long,
     @ColumnInfo(name = "item_price_wei") val itemPriceWei: Long,
     @ColumnInfo(name = "gas_cost_wei") val gasCostWei: Long,
     @ColumnInfo(name = "user_role_id") val userRoleId: Int,
@@ -77,7 +75,8 @@ class Trade(
     }
 
     private class Builder : NetworkStep, ContractAddressStep, ContractStatusIdStep,
-        DateCreatedMillisStep, ItemPriceWeiStep, GasCostWeiStep, UserRoleIdStep, UserWalletAddressStep,
+        DateCreatedMillisStep, ItemPriceWeiStep, GasCostWeiStep, UserRoleIdStep,
+        UserWalletAddressStep,
         CounterPartyRoleIdStep, CounterPartyWalletAddressStep, DescriptionStep, BuildStep {
 
         private var id: Int = 0 //Placeholder, will be replaced by Room upon insertion
@@ -85,6 +84,7 @@ class Trade(
         private lateinit var contractAddress: String
         private var contractStatusId: Int = 0
         private var dateCreatedMillis: Long = 0L
+        private var withdrawEligibilityDateMillis: Long = 0L
         private var itemPriceWei: Long = 0L
         private var gasCostWei: Long = 0L
         private var userRoleId: Int = 0
@@ -107,7 +107,9 @@ class Trade(
 
         override fun dateCreatedSeconds(dateCreatedSeconds: BigInteger) = apply {
             //Date format requires milliseconds
-            this.dateCreatedMillis = dateCreatedSeconds.toLong() * 1000
+            this.dateCreatedMillis = dateCreatedSeconds.toLong() * Constants.MILLIS_PER_SECOND
+            this.withdrawEligibilityDateMillis =
+                (dateCreatedSeconds.toLong() + Constants.TWO_HOURS_IN_SECONDS) * Constants.MILLIS_PER_SECOND
         }
 
         override fun itemPriceWei(priceWei: BigInteger) = apply {
@@ -145,6 +147,7 @@ class Trade(
                 contractAddress,
                 contractStatusId,
                 dateCreatedMillis,
+                withdrawEligibilityDateMillis,
                 itemPriceWei,
                 gasCostWei,
                 userRoleId,

@@ -8,7 +8,6 @@ import com.penguinstudios.tradeguardian.data.model.Network
 import com.penguinstudios.tradeguardian.data.validator.EtherAmountValidator
 import com.penguinstudios.tradeguardian.util.Constants
 import com.penguinstudios.tradeguardian.util.CustomGasProvider
-import com.penguinstudios.tradeguardian.util.WalletUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.withContext
@@ -30,8 +29,6 @@ import org.web3j.tx.Transfer
 import org.web3j.tx.gas.DefaultGasProvider
 import org.web3j.tx.gas.StaticGasProvider
 import org.web3j.utils.Convert
-import timber.log.Timber
-import java.math.BigDecimal
 import java.math.BigInteger
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -109,7 +106,7 @@ class RemoteRepository @Inject constructor(
         }
     }
 
-    private suspend fun userBalance(
+    private suspend fun getUserBalance(
         contractAddress: String,
         walletAddress: String
     ): BigInteger {
@@ -125,7 +122,7 @@ class RemoteRepository @Inject constructor(
         contractAddress: String,
         walletAddress: String
     ): Boolean {
-        return userBalance(contractAddress, walletAddress) > BigInteger.ZERO
+        return getUserBalance(contractAddress, walletAddress) > BigInteger.ZERO
     }
 
     suspend fun correctItemReceived(contractAddress: String): TransactionReceipt {
@@ -216,6 +213,22 @@ class RemoteRepository @Inject constructor(
                     IllegalStateException("Transaction receipt not present")
                 }
         }
+    }
+
+    private suspend fun withdraw(contractAddress: String) : TransactionReceipt{
+        return withContext(Dispatchers.IO) {
+            Escrow.load(contractAddress, web3j, createTxManager(), CustomGasProvider())
+                .withdraw()
+                .sendAsync()
+                .await()
+        }
+    }
+
+    suspend fun cancelTrade(contractAddress: String) : TransactionReceipt? {
+        if(getUserBalance(contractAddress, walletRepository.credentials.address) != BigInteger.ZERO){
+            withdraw(contractAddress)
+        }
+        return null
     }
 
     //Used for read only methods

@@ -105,8 +105,41 @@ class TradeInfoViewModel @Inject constructor(
     fun onCancelTrade() {
         viewModelScope.launch {
             try {
+                if (System.currentTimeMillis() < trade.withdrawEligibilityDate) {
+                    _uiState.emit(TradeInfoUIState.Error("Contract cancellation requires a minimum two-hour wait after creation"))
+                    return@launch
+                }
+
+                if (remoteRepository.getContractStatus(trade.contractAddress) != ContractStatus.AWAITING_DEPOSIT) {
+                    _uiState.emit(TradeInfoUIState.Error("Trade cannot be canceled"))
+                    return@launch
+                }
+
+                val txReceipt = remoteRepository.cancelTrade(trade.contractAddress)
                 localRepository.deleteTrade(trade.contractAddress)
-                _uiState.emit(TradeInfoUIState.SuccessDeleteTrade(trade.contractAddress))
+
+                if (txReceipt == null) {
+                    _uiState.emit(TradeInfoUIState.SuccessDeleteTradeNoReceipt(trade.contractAddress))
+                } else {
+                    val gasCostEther =
+                        WalletUtil.weiToEther(txReceipt.gasUsed.multiply(CustomGasProvider.GAS_PRICE))
+                    val formattedGasCost = "$gasCostEther ${trade.networkTokenName}"
+
+                    val formattedAmountReturned = if (trade.userRole == UserRole.SELLER) {
+                        trade.getFormattedSellerDepositAmount()
+                    } else {
+                        trade.getFormattedBuyerDepositAmount()
+                    }
+
+                    _uiState.emit(
+                        TradeInfoUIState.SuccessDeleteWithReceipt(
+                            txReceipt.transactionHash,
+                            trade.contractAddress,
+                            formattedAmountReturned,
+                            formattedGasCost
+                        )
+                    )
+                }
             } catch (e: Exception) {
                 Timber.e(e)
                 _uiState.emit(TradeInfoUIState.Error(e.message.toString()))
@@ -169,6 +202,7 @@ class TradeInfoViewModel @Inject constructor(
             _uiState.emit(TradeInfoUIState.UpdateSellerReturnDepositStatus(sellerStatus))
             _uiState.emit(TradeInfoUIState.UpdateBuyerReturnDepositStatus(buyerStatus))
             _uiState.emit(TradeInfoUIState.UpdateFeePerParty(feeStatus))
+            _uiState.emit(TradeInfoUIState.ShowTradeStatus(true))
         }
     }
 
@@ -193,6 +227,7 @@ class TradeInfoViewModel @Inject constructor(
             ContractStatus.ITEM_INCORRECT -> {
                 _uiState.emit(TradeInfoUIState.UpdateSellerDeliveryStatus("Seller has marked item as delivered", true))
                 _uiState.emit(TradeInfoUIState.IncorrectItem("Buyer has incorrect item or no item"))
+                _uiState.emit(TradeInfoUIState.ShowTradeStatus(false))
             }
 
             else -> {}
@@ -299,6 +334,8 @@ class TradeInfoViewModel @Inject constructor(
             ContractStatus.SETTLED -> {
                 _uiState.emit(TradeInfoUIState.SetCurrentStepIndicatorStepThree)
             }
+
+            else -> {}
         }
     }
 

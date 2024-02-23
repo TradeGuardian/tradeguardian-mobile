@@ -25,6 +25,7 @@ import com.penguinstudios.tradeguardian.ui.trades.TradesViewModel
 import com.penguinstudios.tradeguardian.util.ClipboardUtil
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @AndroidEntryPoint
 class TradeInfoFragment(
@@ -184,7 +185,7 @@ class TradeInfoFragment(
                         setCurrentStepIndicator(3)
                     }
 
-                    is TradeInfoUIState.SuccessDeleteTrade -> {
+                    is TradeInfoUIState.SuccessDeleteTradeNoReceipt -> {
                         tradesViewModel.removeTradeFromList(uiState.contractAddress)
                         Toast.makeText(
                             requireContext(),
@@ -194,6 +195,16 @@ class TradeInfoFragment(
                         dismiss()
                     }
 
+                    is TradeInfoUIState.SuccessDeleteWithReceipt -> {
+                        tradesViewModel.removeTradeFromList(uiState.contractAddress)
+                        SuccessDeleteFragment(
+                            uiState.txHash,
+                            uiState.contractAddress,
+                            uiState.formattedAmountReturned,
+                            uiState.formattedGasUsed
+                        ).show(requireActivity().supportFragmentManager, null)
+                        dismiss()
+                    }
 
                     is TradeInfoUIState.ShowBuyerReceivedBtns -> {
                         binding.btnItemReceived.visibility = View.VISIBLE
@@ -276,6 +287,28 @@ class TradeInfoFragment(
                                 R.color.default_text_color
                             )
                         )
+                    }
+
+                    is TradeInfoUIState.ShowTradeStatus -> {
+                        Timber.d("Show trade status fired")
+                        binding.tvTradeStatus.visibility = View.VISIBLE
+                        if (uiState.isTradeSuccessful) {
+                            binding.tvTradeStatus.text = "Trade Successful"
+                            binding.tvTradeStatus.setTextColor(
+                                ContextCompat.getColor(
+                                    requireContext(),
+                                    R.color.green_400
+                                )
+                            )
+                        } else {
+                            binding.tvTradeStatus.text = "Deposits Locked"
+                            binding.tvTradeStatus.setTextColor(
+                                ContextCompat.getColor(
+                                    requireContext(),
+                                    R.color.red_400
+                                )
+                            )
+                        }
                     }
 
                     else -> {}
