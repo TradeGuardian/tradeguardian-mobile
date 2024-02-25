@@ -115,6 +115,8 @@ class TradeInfoViewModel @Inject constructor(
                     return@launch
                 }
 
+                _uiState.emit(TradeInfoUIState.ShowCancelingTradeProgress)
+
                 val txReceipt = remoteRepository.cancelTrade(trade.contractAddress)
                 localRepository.deleteTrade(trade.contractAddress)
 
@@ -140,15 +142,30 @@ class TradeInfoViewModel @Inject constructor(
                         )
                     )
                 }
+
+                _uiState.emit(TradeInfoUIState.HideCancelingTradeProgress)
             } catch (e: Exception) {
                 Timber.e(e)
+                _uiState.emit(TradeInfoUIState.HideCancelingTradeProgress)
                 _uiState.emit(TradeInfoUIState.Error(e.message.toString()))
             }
         }
     }
 
-    fun onSettle() {
+    fun settle() {
+        viewModelScope.launch {
+            try {
+                if (remoteRepository.getContractStatus(trade.contractAddress) != ContractStatus.ITEM_INCORRECT) {
+                    _uiState.emit(TradeInfoUIState.Error("Users can only settle if item is incorrect"))
+                    return@launch
+                }
+                
+                val txReceipt = remoteRepository.settle(trade.contractAddress)
 
+            }catch (e: Exception){
+                Timber.e(e)
+            }
+        }
     }
 
     fun setTradeInfo() {

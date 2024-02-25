@@ -29,17 +29,17 @@ class AddTradeViewModel @Inject constructor(
     fun onConfirm(contractAddress: String) {
         viewModelScope.launch {
             try {
-                val userWalletAddress = walletRepository.credentials.address
-                val trades = localRepository.getTrades(userWalletAddress)
-                if (trades.any { trade -> trade.contractAddress == contractAddress }) {
+                if (localRepository.tradeExists(contractAddress)) {
                     _uiState.emit(AddTradeUIState.Error("Trade already exists"))
                     return@launch
                 }
 
+                _uiState.emit(AddTradeUIState.ShowProgressAddTrade)
+
                 val buyerAddress = remoteRepository.getBuyerAddress(contractAddress)
                 val sellerAddress = remoteRepository.getSellerAddress(contractAddress)
 
-                if (buyerAddress != userWalletAddress && sellerAddress != userWalletAddress) {
+                if (!remoteRepository.isUserInvolvedInTrade(contractAddress)) {
                     _uiState.emit(AddTradeUIState.Error("This trade does not belong to you"))
                     return@launch
                 }
@@ -54,6 +54,8 @@ class AddTradeViewModel @Inject constructor(
                 val counterPartyRole: UserRole
                 val counterPartyAddress: String
 
+                val userWalletAddress = walletRepository.credentials.address
+
                 if (userWalletAddress == buyerAddress) {
                     userRole = UserRole.BUYER
                     counterPartyRole = UserRole.SELLER
@@ -64,7 +66,8 @@ class AddTradeViewModel @Inject constructor(
                     counterPartyAddress = buyerAddress
                 }
 
-                val trade = Trade.builder().network(network)
+                val trade = Trade.builder()
+                    .network(network)
                     .contractAddress(contractAddress)
                     .contractStatus(contractStatusId)
                     .dateCreatedSeconds(dateCreated)
@@ -86,6 +89,8 @@ class AddTradeViewModel @Inject constructor(
             } catch (e: Exception) {
                 Timber.e(e)
                 _uiState.emit(AddTradeUIState.Error(e.message.toString()))
+            } finally {
+                _uiState.emit(AddTradeUIState.HideProgressAddTrade)
             }
         }
     }

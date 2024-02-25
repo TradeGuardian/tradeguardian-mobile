@@ -4,7 +4,6 @@ import com.penguinstudios.tradeguardian.contract.Escrow
 import com.penguinstudios.tradeguardian.data.model.ContractDeployment
 import com.penguinstudios.tradeguardian.data.model.ContractStatus
 import com.penguinstudios.tradeguardian.data.model.ExchangeRateResponse
-import com.penguinstudios.tradeguardian.data.model.Network
 import com.penguinstudios.tradeguardian.data.validator.EtherAmountValidator
 import com.penguinstudios.tradeguardian.util.Constants
 import com.penguinstudios.tradeguardian.util.CustomGasProvider
@@ -24,7 +23,6 @@ import org.web3j.protocol.core.methods.response.EthEstimateGas
 import org.web3j.protocol.core.methods.response.EthGasPrice
 import org.web3j.protocol.core.methods.response.EthGetBalance
 import org.web3j.protocol.core.methods.response.TransactionReceipt
-import org.web3j.tx.FastRawTransactionManager
 import org.web3j.tx.Transfer
 import org.web3j.tx.gas.DefaultGasProvider
 import org.web3j.tx.gas.StaticGasProvider
@@ -41,7 +39,7 @@ class RemoteRepository @Inject constructor(
     private val binanceService: BinanceService
 ) {
 
-    suspend fun send(sendToAddress: String, amount: String) : TransactionReceipt {
+    suspend fun send(sendToAddress: String, amount: String): TransactionReceipt {
         return withContext(Dispatchers.IO) {
             require(WalletUtils.isValidAddress(sendToAddress)) { "Not a valid user wallet address" }
 
@@ -76,18 +74,12 @@ class RemoteRepository @Inject constructor(
         }
     }
 
-    private fun createTxManager(): FastRawTransactionManager {
-        return FastRawTransactionManager(
-            web3j, walletRepository.credentials, Network.TEST_NET.chainId.toLong()
-        )
-    }
-
     suspend fun buyerDeposit(
         contractAddress: String,
         depositAmountWei: BigInteger
     ): TransactionReceipt {
         return withContext(Dispatchers.IO) {
-            Escrow.load(contractAddress, web3j, createTxManager(), CustomGasProvider())
+            Escrow.load(contractAddress, web3j, walletRepository.credentials, CustomGasProvider())
                 .buyerDeposit(depositAmountWei)
                 .sendAsync()
                 .await()
@@ -99,7 +91,7 @@ class RemoteRepository @Inject constructor(
         depositAmountWei: BigInteger
     ): TransactionReceipt {
         return withContext(Dispatchers.IO) {
-            Escrow.load(contractAddress, web3j, createTxManager(), CustomGasProvider())
+            Escrow.load(contractAddress, web3j, walletRepository.credentials, CustomGasProvider())
                 .sellerDeposit(depositAmountWei)
                 .sendAsync()
                 .await()
@@ -127,7 +119,7 @@ class RemoteRepository @Inject constructor(
 
     suspend fun correctItemReceived(contractAddress: String): TransactionReceipt {
         return withContext(Dispatchers.IO) {
-            Escrow.load(contractAddress, web3j, createTxManager(), CustomGasProvider())
+            Escrow.load(contractAddress, web3j, walletRepository.credentials, CustomGasProvider())
                 .setBuyerHasReceivedCorrectItem()
                 .sendAsync()
                 .await()
@@ -136,7 +128,7 @@ class RemoteRepository @Inject constructor(
 
     suspend fun incorrectItemReceived(contractAddress: String): TransactionReceipt {
         return withContext(Dispatchers.IO) {
-            Escrow.load(contractAddress, web3j, createTxManager(), CustomGasProvider())
+            Escrow.load(contractAddress, web3j, walletRepository.credentials, CustomGasProvider())
                 .setBuyerHasReceivedIncorrectItem()
                 .sendAsync()
                 .await()
@@ -145,14 +137,14 @@ class RemoteRepository @Inject constructor(
 
     suspend fun itemDelivered(contractAddress: String): TransactionReceipt {
         return withContext(Dispatchers.IO) {
-            Escrow.load(contractAddress, web3j, createTxManager(), CustomGasProvider())
+            Escrow.load(contractAddress, web3j, walletRepository.credentials, CustomGasProvider())
                 .setSellerHasGivenItem()
                 .sendAsync()
                 .await()
         }
     }
 
-    suspend fun estimateGasLimit(contractDeployment: ContractDeployment): EthEstimateGas {
+    suspend fun estimateDeployContractGasLimit(contractDeployment: ContractDeployment): EthEstimateGas {
         return withContext(Dispatchers.IO) {
             withTimeout(15000) {
                 val feeRecipientAddress = Address(contractDeployment.feeRecipientAddress)
@@ -215,21 +207,45 @@ class RemoteRepository @Inject constructor(
         }
     }
 
-    private suspend fun withdraw(contractAddress: String) : TransactionReceipt{
+
+    suspend fun cancelTrade(contractAddress: String): TransactionReceipt? {
+        return if (getUserBalance(
+                contractAddress,
+                walletRepository.credentials.address
+            ) != BigInteger.ZERO
+        ) {
+            withContext(Dispatchers.IO) {
+                Escrow.load(
+                    contractAddress,
+                    web3j,
+                    walletRepository.credentials,
+                    CustomGasProvider()
+                )
+                    .withdraw()
+                    .sendAsync()
+                    .await()
+            }
+        } else {
+            null
+        }
+    }
+
+    suspend fun isUserInvolvedInTrade(contractAddress: String): Boolean {
+        val buyerAddress = getBuyerAddress(contractAddress)
+        val sellerAddress = getSellerAddress(contractAddress)
+        val userWalletAddress = walletRepository.credentials.address
+        return userWalletAddress == buyerAddress || userWalletAddress == sellerAddress
+    }
+
+    suspend fun settle(contractAddress: String): TransactionReceipt {
         return withContext(Dispatchers.IO) {
-            Escrow.load(contractAddress, web3j, createTxManager(), CustomGasProvider())
-                .withdraw()
+            Escrow.load(contractAddress, web3j, walletRepository.credentials, CustomGasProvider())
+                .settle()
                 .sendAsync()
                 .await()
         }
     }
 
-    suspend fun cancelTrade(contractAddress: String) : TransactionReceipt? {
-        if(getUserBalance(contractAddress, walletRepository.credentials.address) != BigInteger.ZERO){
-            withdraw(contractAddress)
-        }
-        return null
-    }
 
     //Used for read only methods
     private fun loadContract(contractAddress: String): Escrow {
@@ -272,6 +288,18 @@ class RemoteRepository @Inject constructor(
     suspend fun getDescription(contractAddress: String): String {
         return withContext(Dispatchers.IO) {
             loadContract(contractAddress).description().sendAsync().await()
+        }
+    }
+
+    suspend fun hasBuyerSettled(contractAddress: String): Boolean {
+        return withContext(Dispatchers.IO) {
+            loadContract(contractAddress).hasBuyerSettled().sendAsync().await()
+        }
+    }
+
+    suspend fun hasSellerSettled(contractAddress: String): Boolean {
+        return withContext(Dispatchers.IO) {
+            loadContract(contractAddress).hasSellerSettled().sendAsync().await()
         }
     }
 }

@@ -46,5 +46,9 @@ class TradesViewModel @Inject constructor(
             trades.removeAt(index)
             _uiState.emit(TradesUIState.DeleteTrade(index))
         }
+
+        if (trades.isEmpty()) {
+            _uiState.emit(TradesUIState.NoTrades)
+        }
     }
 }

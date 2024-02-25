@@ -37,6 +37,7 @@ class TradeInfoFragment(
     private val tradesViewModel: TradesViewModel by activityViewModels()
     private var progressDeposit: AlertDialog? = null
     private var progressDelivery: AlertDialog? = null
+    private var progressDeleteTrade: AlertDialog? = null
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         setStyle(STYLE_NORMAL, R.style.Theme_TradeGuardian)
@@ -88,7 +89,7 @@ class TradeInfoFragment(
         }
 
         binding.btnRequestSettle.setOnClickListener {
-            tradeInfoViewModel.onSettle()
+            ConfirmRequestSettleFragment().show(requireActivity().supportFragmentManager, null)
         }
 
         binding.btnViewOnExplorer.setOnClickListener {
@@ -96,7 +97,7 @@ class TradeInfoFragment(
         }
 
         binding.btnCancelTrade.setOnClickListener {
-            tradeInfoViewModel.onCancelTrade()
+            ConfirmCancelTradeFragment().show(requireActivity().supportFragmentManager, null)
         }
 
         binding.btnCopyContractAddress.setOnClickListener {
@@ -139,6 +140,14 @@ class TradeInfoFragment(
 
                     is TradeInfoUIState.HideItemDeliveryProgress -> {
                         hideProgressDelivery()
+                    }
+
+                    is TradeInfoUIState.ShowCancelingTradeProgress -> {
+                        showProgressCancelTrade()
+                    }
+
+                    is TradeInfoUIState.HideCancelingTradeProgress -> {
+                        hideProgressCancelTrade()
                     }
 
                     is TradeInfoUIState.UpdateBuyerDepositStatus -> {
@@ -398,6 +407,22 @@ class TradeInfoFragment(
 
     private fun hideProgressDelivery() {
         progressDelivery?.hide()
+    }
+
+    private fun showProgressCancelTrade() {
+        if (progressDeleteTrade == null) {
+            val builder = AlertDialog.Builder(requireContext(), R.style.alertDialogTheme)
+            builder.setView(R.layout.progress_delete_trade)
+            progressDeleteTrade = builder.create().apply {
+                setCancelable(false)
+                setCanceledOnTouchOutside(false)
+            }
+        }
+        progressDeleteTrade?.show()
+    }
+
+    private fun hideProgressCancelTrade() {
+        progressDeleteTrade?.hide()
     }
 
     private fun openBrowser() {

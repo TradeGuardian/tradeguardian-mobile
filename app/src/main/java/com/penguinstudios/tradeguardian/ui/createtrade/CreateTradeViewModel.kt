@@ -135,7 +135,7 @@ class CreateTradeViewModel @Inject constructor(
 
     private suspend fun estimateDeployContractGasLimit(contractDeployment: ContractDeployment): EthEstimateGas? {
         return try {
-            remoteRepository.estimateGasLimit(contractDeployment)
+            remoteRepository.estimateDeployContractGasLimit(contractDeployment)
         } catch (e: TimeoutCancellationException) {
             Timber.e("Estimate gas limit timed out")
             null

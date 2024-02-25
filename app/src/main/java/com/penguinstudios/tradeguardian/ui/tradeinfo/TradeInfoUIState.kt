@@ -21,6 +21,9 @@ sealed class TradeInfoUIState {
     object ShowItemDeliveryProgress : TradeInfoUIState()
     object HideItemDeliveryProgress : TradeInfoUIState()
 
+    object ShowCancelingTradeProgress : TradeInfoUIState()
+    object HideCancelingTradeProgress : TradeInfoUIState()
+
     data class UpdateSellerDepositStatus(val status: String, val hasDeposited: Boolean) :
         TradeInfoUIState()
 

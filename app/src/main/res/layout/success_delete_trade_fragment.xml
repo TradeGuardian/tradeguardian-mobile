@@ -13,7 +13,7 @@
         android:fontFamily="@font/poppins_bold"
         android:gravity="center"
         android:padding="16dp"
-        android:text="Deleted Trade"
+        android:text="Trade Canceled"
         android:textColor="@color/green_400"
         android:textSize="16sp"
         app:layout_constraintTop_toTopOf="parent" />
@@ -68,14 +68,14 @@
         app:layout_constraintTop_toBottomOf="@+id/tv_static_contract_address" />
 
     <TextView
-        android:id="@+id/tv_static_amount_returned"
+        android:id="@+id/tv_static_deposit_returned"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:fontFamily="@font/poppins_regular"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
-        android:text="Amount Returned:"
+        android:text="Deposit Returned:"
         android:textColor="@color/default_text_color"
         app:layout_constraintTop_toBottomOf="@+id/tv_contract_address" />
 
@@ -90,7 +90,7 @@
         android:textColor="@color/white"
         app:layout_constraintEnd_toEndOf="@+id/tv_static_tx_hash"
         app:layout_constraintStart_toStartOf="@+id/tv_static_tx_hash"
-        app:layout_constraintTop_toBottomOf="@+id/tv_static_amount_returned" />
+        app:layout_constraintTop_toBottomOf="@+id/tv_static_deposit_returned" />
 
     <TextView
         android:id="@+id/tv_static_gas_used"

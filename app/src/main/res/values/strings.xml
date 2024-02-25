@@ -13,4 +13,5 @@
     <string name="deposit_description_correct_item">"Confirm that the item has been successfully delivered by the seller.</string>
     <string name="deposit_description_incorrect_item">Confirm that the item given by the seller is incorrect or no item has been given.\n\nAre you sure? This action is irreversible and will lock both deposits.</string>
     <string name="deposit_description_item_delivered">Confirm that that the item has been delivered to the buyer.</string>
+    <string name="confirm_cancel_trade">Are you sure you want to cancel the trade? If you have made a deposit it will be returned.</string>
 </resources>

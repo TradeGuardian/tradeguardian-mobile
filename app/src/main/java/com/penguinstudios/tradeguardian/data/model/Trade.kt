@@ -4,6 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.penguinstudios.tradeguardian.util.Constants
+import timber.log.Timber
 import java.math.BigInteger
 
 @Entity(tableName = "trades")
@@ -133,7 +134,7 @@ class Trade(
         }
 
         override fun counterPartyWalletAddress(address: String) = apply {
-            this.counterPartyWalletAddress = address
+            this.counterPartyWalletAddress = address.lowercase()
         }
 
         override fun description(description: String) = apply {

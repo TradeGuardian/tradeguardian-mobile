@@ -4,6 +4,7 @@ import org.web3j.abi.EventEncoder;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
+import org.web3j.abi.datatypes.Bool;
 import org.web3j.abi.datatypes.Event;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.Type;
@@ -61,6 +62,10 @@ public class Escrow extends Contract {
     public static final String FUNC_DESCRIPTION = "description";
 
     public static final String FUNC_FEERECIPIENT = "feeRecipient";
+
+    public static final String FUNC_HASBUYERSETTLED = "hasBuyerSettled";
+
+    public static final String FUNC_HASSELLERSETTLED = "hasSellerSettled";
 
     public static final String FUNC_ITEMPRICE = "itemPrice";
 
@@ -463,6 +468,20 @@ public class Escrow extends Contract {
                 Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {
                 }));
         return executeRemoteCallSingleValueReturn(function, String.class);
+    }
+
+    public RemoteFunctionCall<Boolean> hasBuyerSettled() {
+        final Function function = new Function(FUNC_HASBUYERSETTLED,
+                Arrays.<Type>asList(),
+                Arrays.<TypeReference<?>>asList(new TypeReference<Bool>() {}));
+        return executeRemoteCallSingleValueReturn(function, Boolean.class);
+    }
+
+    public RemoteFunctionCall<Boolean> hasSellerSettled() {
+        final Function function = new Function(FUNC_HASSELLERSETTLED,
+                Arrays.<Type>asList(),
+                Arrays.<TypeReference<?>>asList(new TypeReference<Bool>() {}));
+        return executeRemoteCallSingleValueReturn(function, Boolean.class);
     }
 
     public RemoteFunctionCall<BigInteger> itemPrice() {
