@@ -6,9 +6,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
-import com.penguinstudios.tradeguardian.data.getFormattedBuyerDepositAmount
-import com.penguinstudios.tradeguardian.data.getFormattedItemPrice
-import com.penguinstudios.tradeguardian.data.getFormattedSellerDepositAmount
+import com.penguinstudios.tradeguardian.data.model.getFormattedBuyerDepositAmount
+import com.penguinstudios.tradeguardian.data.model.getFormattedItemPrice
+import com.penguinstudios.tradeguardian.data.model.getFormattedSellerDepositAmount
 import com.penguinstudios.tradeguardian.data.model.UserRole
 import com.penguinstudios.tradeguardian.databinding.ConfirmDepositFragmentBinding
 import com.penguinstudios.tradeguardian.util.Constants

@@ -24,6 +24,9 @@ sealed class TradeInfoUIState {
     object ShowCancelingTradeProgress : TradeInfoUIState()
     object HideCancelingTradeProgress : TradeInfoUIState()
 
+    object ShowRequestingSettleProgress : TradeInfoUIState()
+    object HideRequestingSettleProgress : TradeInfoUIState()
+
     data class UpdateSellerDepositStatus(val status: String, val hasDeposited: Boolean) :
         TradeInfoUIState()
 
@@ -38,7 +41,9 @@ sealed class TradeInfoUIState {
     data class UpdateBuyerReceivedStatus(val status: String, val isDelivered: Boolean) :
         TradeInfoUIState()
 
-    data class ShowTradeStatus(val isTradeSuccessful: Boolean) : TradeInfoUIState()
+    object ShowSuccessfulTradeStatus : TradeInfoUIState()
+    object ShowIncorrectItemTradeStatus : TradeInfoUIState()
+    object ShowSettledTradeStatus : TradeInfoUIState()
 
     object ShowBuyerReceivedBtns : TradeInfoUIState()
     object ShowSellerDeliveryBtn : TradeInfoUIState()
@@ -48,9 +53,12 @@ sealed class TradeInfoUIState {
     data class UpdateBuyerReturnDepositStatus(val status: String) : TradeInfoUIState()
     data class UpdateFeePerParty(val status: String) : TradeInfoUIState()
 
-    object SetCurrentStepIndicatorStepOne : TradeInfoUIState()
-    object SetCurrentStepIndicatorStepTwo : TradeInfoUIState()
-    object SetCurrentStepIndicatorStepThree : TradeInfoUIState()
+    data class UpdateSellerSettleStatus(val hasRequestedToSettle: Boolean) : TradeInfoUIState()
+    data class UpdateBuyerSettleStatus(val hasRequestedToSettle: Boolean) : TradeInfoUIState()
+
+    object SetStepIndicatorStepOne : TradeInfoUIState()
+    object SetStepIndicatorStepTwo : TradeInfoUIState()
+    data class SetStepIndicatorStepThree(val showSettleStatus: Boolean) : TradeInfoUIState()
 
     data class IncorrectItem(val status: String) : TradeInfoUIState()
 
@@ -61,6 +69,14 @@ sealed class TradeInfoUIState {
         val contractAddress: String,
         val formattedAmountReturned: String,
         val formattedGasUsed: String
+    ) : TradeInfoUIState()
+
+    data class SuccessSettle(
+        val contractAddress: String,
+        val title: String,
+        val status: String,
+        val txHash: String,
+        val formattedGasCost: String
     ) : TradeInfoUIState()
 
     data class Error(val message: String) : TradeInfoUIState()

@@ -14,18 +14,17 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.penguinstudios.tradeguardian.R
-import com.penguinstudios.tradeguardian.data.counterPartyRole
-import com.penguinstudios.tradeguardian.data.getFormattedItemPrice
 import com.penguinstudios.tradeguardian.data.model.Network
 import com.penguinstudios.tradeguardian.data.model.Trade
-import com.penguinstudios.tradeguardian.data.networkName
-import com.penguinstudios.tradeguardian.data.userRole
+import com.penguinstudios.tradeguardian.data.model.counterPartyRole
+import com.penguinstudios.tradeguardian.data.model.getFormattedItemPrice
+import com.penguinstudios.tradeguardian.data.model.networkName
+import com.penguinstudios.tradeguardian.data.model.userRole
 import com.penguinstudios.tradeguardian.databinding.TradeInfoFragmentBinding
 import com.penguinstudios.tradeguardian.ui.trades.TradesViewModel
 import com.penguinstudios.tradeguardian.util.ClipboardUtil
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 @AndroidEntryPoint
 class TradeInfoFragment(
@@ -38,6 +37,7 @@ class TradeInfoFragment(
     private var progressDeposit: AlertDialog? = null
     private var progressDelivery: AlertDialog? = null
     private var progressDeleteTrade: AlertDialog? = null
+    private var progressRequestSettle: AlertDialog? = null
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         setStyle(STYLE_NORMAL, R.style.Theme_TradeGuardian)
@@ -150,6 +150,14 @@ class TradeInfoFragment(
                         hideProgressCancelTrade()
                     }
 
+                    is TradeInfoUIState.ShowRequestingSettleProgress -> {
+                        showProgressRequestSettle()
+                    }
+
+                    is TradeInfoUIState.HideRequestingSettleProgress -> {
+                        hideProgressRequestSettle()
+                    }
+
                     is TradeInfoUIState.UpdateBuyerDepositStatus -> {
                         binding.tvBuyerDepositStatus.text = uiState.status
                         if (uiState.hasDeposited) {
@@ -182,16 +190,16 @@ class TradeInfoFragment(
                         Toast.makeText(requireContext(), uiState.message, Toast.LENGTH_SHORT).show()
                     }
 
-                    is TradeInfoUIState.SetCurrentStepIndicatorStepOne -> {
-                        setCurrentStepIndicator(1)
+                    is TradeInfoUIState.SetStepIndicatorStepOne -> {
+                        setCurrentStepIndicator(1, false)
                     }
 
-                    is TradeInfoUIState.SetCurrentStepIndicatorStepTwo -> {
-                        setCurrentStepIndicator(2)
+                    is TradeInfoUIState.SetStepIndicatorStepTwo -> {
+                        setCurrentStepIndicator(2, false)
                     }
 
-                    is TradeInfoUIState.SetCurrentStepIndicatorStepThree -> {
-                        setCurrentStepIndicator(3)
+                    is TradeInfoUIState.SetStepIndicatorStepThree -> {
+                        setCurrentStepIndicator(3, uiState.showSettleStatus)
                     }
 
                     is TradeInfoUIState.SuccessDeleteTradeNoReceipt -> {
@@ -298,29 +306,89 @@ class TradeInfoFragment(
                         )
                     }
 
-                    is TradeInfoUIState.ShowTradeStatus -> {
-                        Timber.d("Show trade status fired")
+                    is TradeInfoUIState.ShowSuccessfulTradeStatus -> {
                         binding.tvTradeStatus.visibility = View.VISIBLE
-                        if (uiState.isTradeSuccessful) {
-                            binding.tvTradeStatus.text = "Trade Successful"
-                            binding.tvTradeStatus.setTextColor(
+                        binding.tvTradeStatus.text = "Trade Successful"
+                        binding.tvTradeStatus.setTextColor(
+                            ContextCompat.getColor(
+                                requireContext(),
+                                R.color.green_400
+                            )
+                        )
+                    }
+
+                    is TradeInfoUIState.ShowIncorrectItemTradeStatus -> {
+                        binding.tvTradeStatus.visibility = View.VISIBLE
+                        binding.tvTradeStatus.text = "Deposits Locked"
+                        binding.tvTradeStatus.setTextColor(
+                            ContextCompat.getColor(
+                                requireContext(),
+                                R.color.red_400
+                            )
+                        )
+
+                    }
+
+                    is TradeInfoUIState.ShowSettledTradeStatus -> {
+                        binding.tvTradeStatus.visibility = View.VISIBLE
+                        binding.tvTradeStatus.text = "Trade Settled"
+                        binding.tvTradeStatus.setTextColor(
+                            ContextCompat.getColor(
+                                requireContext(),
+                                R.color.green_400
+                            )
+                        )
+                    }
+
+                    is TradeInfoUIState.SuccessSettle -> {
+                        SuccessSettleFragment(
+                            uiState.contractAddress,
+                            uiState.title,
+                            uiState.status,
+                            uiState.txHash,
+                            uiState.formattedGasCost
+                        ).show(requireActivity().supportFragmentManager, null)
+                    }
+
+                    is TradeInfoUIState.UpdateSellerSettleStatus -> {
+                        if (uiState.hasRequestedToSettle) {
+                            binding.tvSellerSettleStatus.text = "Seller has requested to settle"
+                            binding.tvSellerSettleStatus.setTextColor(
                                 ContextCompat.getColor(
                                     requireContext(),
                                     R.color.green_400
                                 )
                             )
                         } else {
-                            binding.tvTradeStatus.text = "Deposits Locked"
-                            binding.tvTradeStatus.setTextColor(
+                            binding.tvSellerSettleStatus.text = "Seller has not requested to settle"
+                            binding.tvSellerSettleStatus.setTextColor(
                                 ContextCompat.getColor(
                                     requireContext(),
-                                    R.color.red_400
+                                    R.color.default_text_color
                                 )
                             )
                         }
                     }
 
-                    else -> {}
+                    is TradeInfoUIState.UpdateBuyerSettleStatus -> {
+                        if (uiState.hasRequestedToSettle) {
+                            binding.tvBuyerSettleStatus.text = "Buyer has requested to settle"
+                            binding.tvBuyerSettleStatus.setTextColor(
+                                ContextCompat.getColor(
+                                    requireContext(),
+                                    R.color.green_400
+                                )
+                            )
+                        } else {
+                            binding.tvBuyerSettleStatus.text = "Buyer has not requested to settle"
+                            binding.tvBuyerSettleStatus.setTextColor(
+                                ContextCompat.getColor(
+                                    requireContext(),
+                                    R.color.default_text_color
+                                )
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -329,7 +397,7 @@ class TradeInfoFragment(
     }
 
     // @formatter:off
-    private fun setCurrentStepIndicator(step: Int) {
+    private fun setCurrentStepIndicator(step: Int, showSettleStatus: Boolean) {
         // Common actions for all steps
         binding.tvStaticAwaitingDeposit.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
         binding.layoutAwaitingDeposit.visibility = View.VISIBLE
@@ -351,7 +419,12 @@ class TradeInfoFragment(
                 binding.circle3.setBackgroundResource(R.drawable.circle_filled_purple)
                 binding.circle3Text.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
                 binding.tvStaticReturnDeposits.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
-                binding.layoutReturnDeposits.visibility = View.VISIBLE
+
+                if(showSettleStatus){
+                    binding.layoutSettleStatus.visibility = View.VISIBLE
+                }else{
+                    binding.layoutReturnDeposits.visibility = View.VISIBLE
+                }
             }
         }
     }
@@ -423,6 +496,22 @@ class TradeInfoFragment(
 
     private fun hideProgressCancelTrade() {
         progressDeleteTrade?.hide()
+    }
+
+    private fun showProgressRequestSettle() {
+        if (progressRequestSettle == null) {
+            val builder = AlertDialog.Builder(requireContext(), R.style.alertDialogTheme)
+            builder.setView(R.layout.progress_request_settle)
+            progressRequestSettle = builder.create().apply {
+                setCancelable(false)
+                setCanceledOnTouchOutside(false)
+            }
+        }
+        progressRequestSettle?.show()
+    }
+
+    private fun hideProgressRequestSettle() {
+        progressRequestSettle?.hide()
     }
 
     private fun openBrowser() {

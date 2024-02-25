@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.penguinstudios.tradeguardian.data.LocalRepository
 import com.penguinstudios.tradeguardian.data.RemoteRepository
 import com.penguinstudios.tradeguardian.data.WalletRepository
-import com.penguinstudios.tradeguardian.data.getFormattedGasCost
+import com.penguinstudios.tradeguardian.data.model.getFormattedGasCost
 import com.penguinstudios.tradeguardian.data.model.ContractDeployment
 import com.penguinstudios.tradeguardian.data.model.ContractStatus
 import com.penguinstudios.tradeguardian.data.model.ExchangeRateResponse

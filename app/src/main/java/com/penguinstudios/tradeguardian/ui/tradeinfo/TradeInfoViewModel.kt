@@ -5,21 +5,21 @@ import androidx.lifecycle.viewModelScope
 import com.penguinstudios.tradeguardian.data.LocalRepository
 import com.penguinstudios.tradeguardian.data.RemoteRepository
 import com.penguinstudios.tradeguardian.data.WalletRepository
-import com.penguinstudios.tradeguardian.data.counterPartyRole
-import com.penguinstudios.tradeguardian.data.getBuyerDepositAmount
-import com.penguinstudios.tradeguardian.data.getFormattedAmountReturnedToBuyer
-import com.penguinstudios.tradeguardian.data.getFormattedAmountReturnedToSeller
-import com.penguinstudios.tradeguardian.data.getFormattedBuyerDepositAmount
-import com.penguinstudios.tradeguardian.data.getFormattedItemPrice
-import com.penguinstudios.tradeguardian.data.getFormattedPercentFeePerParty
-import com.penguinstudios.tradeguardian.data.getFormattedSellerDepositAmount
-import com.penguinstudios.tradeguardian.data.getSellerDepositAmount
 import com.penguinstudios.tradeguardian.data.model.ContractStatus
 import com.penguinstudios.tradeguardian.data.model.Trade
 import com.penguinstudios.tradeguardian.data.model.UserRole
-import com.penguinstudios.tradeguardian.data.network
-import com.penguinstudios.tradeguardian.data.networkTokenName
-import com.penguinstudios.tradeguardian.data.userRole
+import com.penguinstudios.tradeguardian.data.model.counterPartyRole
+import com.penguinstudios.tradeguardian.data.model.getBuyerDepositAmount
+import com.penguinstudios.tradeguardian.data.model.getFormattedAmountReturnedToBuyer
+import com.penguinstudios.tradeguardian.data.model.getFormattedAmountReturnedToSeller
+import com.penguinstudios.tradeguardian.data.model.getFormattedBuyerDepositAmount
+import com.penguinstudios.tradeguardian.data.model.getFormattedItemPrice
+import com.penguinstudios.tradeguardian.data.model.getFormattedPercentFeePerParty
+import com.penguinstudios.tradeguardian.data.model.getFormattedSellerDepositAmount
+import com.penguinstudios.tradeguardian.data.model.getSellerDepositAmount
+import com.penguinstudios.tradeguardian.data.model.network
+import com.penguinstudios.tradeguardian.data.model.networkTokenName
+import com.penguinstudios.tradeguardian.data.model.userRole
 import com.penguinstudios.tradeguardian.util.CustomGasProvider
 import com.penguinstudios.tradeguardian.util.WalletUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -159,14 +159,90 @@ class TradeInfoViewModel @Inject constructor(
                     _uiState.emit(TradeInfoUIState.Error("Users can only settle if item is incorrect"))
                     return@launch
                 }
-                
-                val txReceipt = remoteRepository.settle(trade.contractAddress)
 
-            }catch (e: Exception){
+                _uiState.emit(TradeInfoUIState.ShowRequestingSettleProgress)
+
+                val hasBuyerSettled = remoteRepository.hasBuyerSettled(trade.contractAddress)
+                val hasSellerSettled = remoteRepository.hasSellerSettled(trade.contractAddress)
+
+                val hasUserSettled = when (trade.userRole) {
+                    UserRole.SELLER -> hasSellerSettled
+                    UserRole.BUYER -> hasBuyerSettled
+                }
+
+                if (hasUserSettled) {
+                    _uiState.emit(TradeInfoUIState.Error("You have already settled"))
+                    _uiState.emit(TradeInfoUIState.HideRequestingSettleProgress)
+                    return@launch
+                }
+
+                val txReceipt = remoteRepository.settle(trade.contractAddress)
+                val gasCostEther =
+                    WalletUtil.weiToEther(txReceipt.gasUsed.multiply(CustomGasProvider.GAS_PRICE))
+                val formattedGasCost = "$gasCostEther ${trade.networkTokenName}"
+
+                _uiState.emit(TradeInfoUIState.HideRequestingSettleProgress)
+
+                //Uses the counterparty's role to determine which message to display in dialog
+                when (trade.counterPartyRole) {
+                    UserRole.SELLER -> {
+                        val depositAmountMessage = trade.getFormattedBuyerDepositAmount()
+                        emitSuccessSettleMessage(
+                            hasSellerSettled,
+                            depositAmountMessage,
+                            txReceipt.transactionHash,
+                            formattedGasCost
+                        )
+                    }
+
+                    UserRole.BUYER -> {
+                        val depositAmountMessage = trade.getFormattedSellerDepositAmount()
+                        emitSuccessSettleMessage(
+                            hasBuyerSettled,
+                            depositAmountMessage,
+                            txReceipt.transactionHash,
+                            formattedGasCost
+                        )
+                    }
+                }
+            } catch (e: Exception) {
                 Timber.e(e)
+                _uiState.emit(TradeInfoUIState.HideRequestingSettleProgress)
+                _uiState.emit(TradeInfoUIState.Error(e.message.toString()))
             }
         }
     }
+
+    private suspend fun emitSuccessSettleMessage(
+        hasCounterPartySettledBeforeYou: Boolean,
+        formattedDepositAmount: String,
+        txHash: String,
+        formattedGasCost: String
+    ) {
+
+        val title = if (hasCounterPartySettledBeforeYou) {
+            "Settlement Complete"
+        } else {
+            "Settlement Initiated"
+        }
+
+        val settlementDescription = if (hasCounterPartySettledBeforeYou) {
+            "The trade has been settled. Your deposit of $formattedDepositAmount has been returned."
+        } else {
+            "You have requested to settle. Awaiting action from counterparty."
+        }
+
+        _uiState.emit(
+            TradeInfoUIState.SuccessSettle(
+                trade.contractAddress,
+                title,
+                settlementDescription,
+                txHash,
+                formattedGasCost
+            )
+        )
+    }
+
 
     fun setTradeInfo() {
         viewModelScope.launch {
@@ -196,13 +272,24 @@ class TradeInfoViewModel @Inject constructor(
 
                 setDepositBtnState(contractStatus, hasUserDeposited)
                 setCurrentStepIndicator(contractStatus)
-                setAwaitingDeliveryBtnState(contractStatus, trade.userRole)
+                setAwaitingDeliveryBtnState(contractStatus)
                 setItemDeliveryStatus(contractStatus)
                 setReturnDepositStatus(contractStatus)
+                setTradeStatus(contractStatus)
+                setSettleStatus(contractStatus)
             } catch (e: Exception) {
                 Timber.e(e)
             }
+        }
+    }
 
+    private suspend fun setSettleStatus(contractStatus: ContractStatus) {
+        if (contractStatus == ContractStatus.ITEM_INCORRECT || contractStatus == ContractStatus.SETTLED) {
+            val hasSellerSettled = remoteRepository.hasSellerSettled(trade.contractAddress)
+            val hasBuyerSettled = remoteRepository.hasBuyerSettled(trade.contractAddress)
+
+            _uiState.emit(TradeInfoUIState.UpdateSellerSettleStatus(hasSellerSettled))
+            _uiState.emit(TradeInfoUIState.UpdateBuyerSettleStatus(hasBuyerSettled))
         }
     }
 
@@ -219,7 +306,24 @@ class TradeInfoViewModel @Inject constructor(
             _uiState.emit(TradeInfoUIState.UpdateSellerReturnDepositStatus(sellerStatus))
             _uiState.emit(TradeInfoUIState.UpdateBuyerReturnDepositStatus(buyerStatus))
             _uiState.emit(TradeInfoUIState.UpdateFeePerParty(feeStatus))
-            _uiState.emit(TradeInfoUIState.ShowTradeStatus(true))
+        }
+    }
+
+    private suspend fun setTradeStatus(contractStatus: ContractStatus) {
+        when (contractStatus) {
+            ContractStatus.ITEM_RECEIVED -> {
+                _uiState.emit(TradeInfoUIState.ShowSuccessfulTradeStatus)
+            }
+
+            ContractStatus.ITEM_INCORRECT -> {
+                _uiState.emit(TradeInfoUIState.ShowIncorrectItemTradeStatus)
+            }
+
+            ContractStatus.SETTLED -> {
+                _uiState.emit(TradeInfoUIState.ShowSettledTradeStatus)
+            }
+
+            else -> {}
         }
     }
 
@@ -244,7 +348,11 @@ class TradeInfoViewModel @Inject constructor(
             ContractStatus.ITEM_INCORRECT -> {
                 _uiState.emit(TradeInfoUIState.UpdateSellerDeliveryStatus("Seller has marked item as delivered", true))
                 _uiState.emit(TradeInfoUIState.IncorrectItem("Buyer has incorrect item or no item"))
-                _uiState.emit(TradeInfoUIState.ShowTradeStatus(false))
+            }
+
+            ContractStatus.SETTLED -> {
+                _uiState.emit(TradeInfoUIState.UpdateSellerDeliveryStatus("Seller has marked item as delivered", true))
+                _uiState.emit(TradeInfoUIState.IncorrectItem("Buyer has incorrect item or no item"))
             }
 
             else -> {}
@@ -253,18 +361,17 @@ class TradeInfoViewModel @Inject constructor(
     // @formatter:on
 
     private suspend fun setAwaitingDeliveryBtnState(
-        contractStatus: ContractStatus,
-        userRole: UserRole
+        contractStatus: ContractStatus
     ) {
         when (contractStatus) {
             ContractStatus.AWAITING_DELIVERY -> {
-                if (userRole == UserRole.SELLER) {
+                if (trade.userRole == UserRole.SELLER) {
                     _uiState.emit(TradeInfoUIState.ShowSellerDeliveryBtn)
                 }
             }
 
             ContractStatus.ITEM_SENT -> {
-                if (userRole == UserRole.BUYER) {
+                if (trade.userRole == UserRole.BUYER) {
                     _uiState.emit(TradeInfoUIState.ShowBuyerReceivedBtns)
                 }
             }
@@ -337,19 +444,19 @@ class TradeInfoViewModel @Inject constructor(
     private suspend fun setCurrentStepIndicator(contractStatus: ContractStatus) {
         when (contractStatus) {
             ContractStatus.AWAITING_DEPOSIT -> {
-                _uiState.emit(TradeInfoUIState.SetCurrentStepIndicatorStepOne)
+                _uiState.emit(TradeInfoUIState.SetStepIndicatorStepOne)
             }
 
-            ContractStatus.AWAITING_DELIVERY, ContractStatus.ITEM_SENT, ContractStatus.ITEM_INCORRECT -> {
-                _uiState.emit(TradeInfoUIState.SetCurrentStepIndicatorStepTwo)
+            ContractStatus.AWAITING_DELIVERY, ContractStatus.ITEM_SENT -> {
+                _uiState.emit(TradeInfoUIState.SetStepIndicatorStepTwo)
             }
 
             ContractStatus.ITEM_RECEIVED -> {
-                _uiState.emit(TradeInfoUIState.SetCurrentStepIndicatorStepThree)
+                _uiState.emit(TradeInfoUIState.SetStepIndicatorStepThree(false))
             }
 
-            ContractStatus.SETTLED -> {
-                _uiState.emit(TradeInfoUIState.SetCurrentStepIndicatorStepThree)
+            ContractStatus.ITEM_INCORRECT, ContractStatus.SETTLED -> {
+                _uiState.emit(TradeInfoUIState.SetStepIndicatorStepThree(true))
             }
 
             else -> {}

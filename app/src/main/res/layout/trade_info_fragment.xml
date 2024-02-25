@@ -362,6 +362,38 @@
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/layout_settle_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                app:layout_constraintStart_toStartOf="@+id/layout_return_deposits"
+                app:layout_constraintTop_toBottomOf="@+id/layout_return_deposits">
+
+                <TextView
+                    android:id="@+id/tv_seller_settle_status"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/poppins_regular"
+                    android:paddingTop="3dp"
+                    android:text="Seller has --"
+                    android:textColor="@color/default_text_color"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/tv_buyer_settle_status"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/poppins_regular"
+                    android:paddingTop="3dp"
+                    android:text="Buyer has --"
+                    android:textColor="@color/default_text_color"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/tv_seller_settle_status" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
             <TextView
                 android:id="@+id/tv_trade_status"
                 android:layout_width="match_parent"
@@ -378,7 +410,7 @@
                 android:textColor="@color/default_text_color"
                 android:textSize="20sp"
                 android:visibility="gone"
-                app:layout_constraintTop_toBottomOf="@+id/layout_return_deposits" />
+                app:layout_constraintTop_toBottomOf="@+id/layout_settle_status" />
 
             <TextView
                 android:id="@+id/tv_static_trade_info"

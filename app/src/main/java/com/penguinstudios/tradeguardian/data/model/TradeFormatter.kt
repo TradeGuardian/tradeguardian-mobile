@@ -1,8 +1,5 @@
-package com.penguinstudios.tradeguardian.data
+package com.penguinstudios.tradeguardian.data.model
 
-import com.penguinstudios.tradeguardian.data.model.Network
-import com.penguinstudios.tradeguardian.data.model.Trade
-import com.penguinstudios.tradeguardian.data.model.UserRole
 import com.penguinstudios.tradeguardian.util.Constants
 import com.penguinstudios.tradeguardian.util.WalletUtil
 import java.math.BigDecimal
