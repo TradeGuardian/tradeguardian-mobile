@@ -389,6 +389,14 @@ class TradeInfoFragment(
                             )
                         }
                     }
+
+                    is TradeInfoUIState.ShowStepIndicatorProgress -> {
+                        binding.progressStepIndicator.visibility = View.VISIBLE
+                    }
+
+                    is TradeInfoUIState.HideStepIndicatorProgress -> {
+                        binding.progressStepIndicator.visibility = View.GONE
+                    }
                 }
             }
         }

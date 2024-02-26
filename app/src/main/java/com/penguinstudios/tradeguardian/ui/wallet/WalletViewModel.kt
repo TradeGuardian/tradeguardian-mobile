@@ -1,23 +1,33 @@
 package com.penguinstudios.tradeguardian.ui.wallet
 
+import android.app.Application
+import android.content.ContentValues
+import android.os.Environment
+import android.provider.MediaStore
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.gson.Gson
+import com.penguinstudios.tradeguardian.data.LocalRepository
 import com.penguinstudios.tradeguardian.data.RemoteRepository
 import com.penguinstudios.tradeguardian.data.WalletRepository
 import com.penguinstudios.tradeguardian.util.WalletUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.io.IOException
 import javax.inject.Inject
 
 @HiltViewModel
 class WalletViewModel @Inject constructor(
     private val remoteRepository: RemoteRepository,
-    private val walletRepository: WalletRepository
+    private val walletRepository: WalletRepository,
+    private val localRepository: LocalRepository
 ) : ViewModel() {
 
     private val _uiState = MutableSharedFlow<WalletUIState>()
@@ -47,5 +57,17 @@ class WalletViewModel @Inject constructor(
 
     fun getWalletAddress(): String {
         return walletRepository.credentials.address
+    }
+
+    fun onExportTrades() {
+        viewModelScope.launch {
+            try {
+                localRepository.exportTrades()
+                _uiState.emit(WalletUIState.SuccessExportTrade)
+            } catch (e: Exception) {
+                Timber.e(e)
+                _uiState.emit(WalletUIState.Error("Failed to export trades"))
+            }
+        }
     }
 }

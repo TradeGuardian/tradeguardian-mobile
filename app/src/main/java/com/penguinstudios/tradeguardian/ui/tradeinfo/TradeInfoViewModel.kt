@@ -155,7 +155,14 @@ class TradeInfoViewModel @Inject constructor(
     fun settle() {
         viewModelScope.launch {
             try {
-                if (remoteRepository.getContractStatus(trade.contractAddress) != ContractStatus.ITEM_INCORRECT) {
+                val contractStatus = remoteRepository.getContractStatus(trade.contractAddress)
+
+                if (contractStatus == ContractStatus.SETTLED) {
+                    _uiState.emit(TradeInfoUIState.Error("The trade has already been settled"))
+                    return@launch
+                }
+
+                if (contractStatus != ContractStatus.ITEM_INCORRECT) {
                     _uiState.emit(TradeInfoUIState.Error("Users can only settle if item is incorrect"))
                     return@launch
                 }
@@ -247,6 +254,8 @@ class TradeInfoViewModel @Inject constructor(
     fun setTradeInfo() {
         viewModelScope.launch {
             try {
+                _uiState.emit(TradeInfoUIState.ShowStepIndicatorProgress)
+
                 val contractStatus = remoteRepository.getContractStatus(trade.contractAddress)
                 Timber.d("Contract address: " + contractStatus.statusName)
 
@@ -277,8 +286,12 @@ class TradeInfoViewModel @Inject constructor(
                 setReturnDepositStatus(contractStatus)
                 setTradeStatus(contractStatus)
                 setSettleStatus(contractStatus)
+
+                _uiState.emit(TradeInfoUIState.HideStepIndicatorProgress)
             } catch (e: Exception) {
                 Timber.e(e)
+                _uiState.emit(TradeInfoUIState.HideStepIndicatorProgress)
+                _uiState.emit(TradeInfoUIState.Error(e.message.toString()))
             }
         }
     }

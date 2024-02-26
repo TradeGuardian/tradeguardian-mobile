@@ -79,5 +79,8 @@ sealed class TradeInfoUIState {
         val formattedGasCost: String
     ) : TradeInfoUIState()
 
+    object ShowStepIndicatorProgress : TradeInfoUIState()
+    object HideStepIndicatorProgress: TradeInfoUIState()
+
     data class Error(val message: String) : TradeInfoUIState()
 }

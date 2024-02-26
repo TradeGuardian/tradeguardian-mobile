@@ -60,7 +60,7 @@ class WalletFragment : Fragment(), WalletPopupWindow.Callback {
         }
 
         binding.btnExportTrades.setOnClickListener {
-
+            viewModel.onExportTrades()
         }
 
         lifecycleScope.launch {
@@ -72,6 +72,14 @@ class WalletFragment : Fragment(), WalletPopupWindow.Callback {
                         binding.layoutWalletBalance.root.visibility = View.VISIBLE
                         binding.layoutProgressWalletBalance.root.visibility = View.INVISIBLE
                         binding.swipeRefreshLayout.isRefreshing = false
+                    }
+
+                    is WalletUIState.SuccessExportTrade -> {
+                        Toast.makeText(
+                            requireContext(),
+                            "Exported trades.json to downloads directory",
+                            Toast.LENGTH_LONG
+                        ).show()
                     }
 
                     is WalletUIState.Error -> {

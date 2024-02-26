@@ -6,5 +6,7 @@ sealed class WalletUIState {
         val walletBalance: String
     ) : WalletUIState()
 
+    object SuccessExportTrade : WalletUIState()
+
     data class Error(val message: String) : WalletUIState()
 }
