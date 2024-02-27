@@ -22,8 +22,6 @@ class StartActivity : AppCompatActivity() {
 
         val intent = if (sharedPrefManager.walletName != null) {
             Intent(this, WelcomeBackActivity::class.java)
-            //Intent(this, WalletSetupActivity::class.java)
-            //Intent(this, MainActivity::class.java)
         } else {
             Intent(this, WalletSetupActivity::class.java)
         }

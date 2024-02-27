@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.penguinstudios.tradeguardian.R
@@ -26,7 +27,7 @@ class ConfirmTradeFragment(
 ) : DialogFragment() {
 
     private lateinit var binding: ConfirmCreateTradeFragmentBinding
-    private val viewModel: CreateTradeViewModel by viewModels({ requireActivity() })
+    private val viewModel: CreateTradeViewModel by activityViewModels()
     private var progressCreateContract: AlertDialog? = null
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -34,6 +35,10 @@ class ConfirmTradeFragment(
         val dialog = super.onCreateDialog(savedInstanceState)
         dialog.window?.attributes?.windowAnimations = R.style.FragmentSlideUpAnim
         return dialog
+    }
+
+    private val redColor by lazy {
+        ContextCompat.getColor(requireContext(), R.color.red_400)
     }
 
     override fun onCreateView(
@@ -100,13 +105,13 @@ class ConfirmTradeFragment(
 
                         binding.tvItemPriceUsd.apply {
                             text = "Failed to get item price USD"
-                            setTextColor(ContextCompat.getColor(requireContext(), R.color.red_400))
+                            setTextColor(redColor)
                             visibility = View.VISIBLE
                         }
 
                         binding.tvEstimatedGasUsd.apply {
                             text = "Failed to get estimated gas USD"
-                            setTextColor(ContextCompat.getColor(requireContext(), R.color.red_400))
+                            setTextColor(redColor)
                             visibility = View.VISIBLE
                         }
                     }
@@ -117,13 +122,13 @@ class ConfirmTradeFragment(
 
                         binding.tvItemPriceUsd.apply {
                             text = "Failed to get item price USD"
-                            setTextColor(ContextCompat.getColor(requireContext(), R.color.red_400))
+                            setTextColor(redColor)
                             visibility = View.VISIBLE
                         }
 
                         binding.tvEstimatedGasEther.apply {
                             text = "Failed to get gas estimate"
-                            setTextColor(ContextCompat.getColor(requireContext(), R.color.red_400))
+                            setTextColor(redColor)
                             visibility = View.VISIBLE
                         }
 

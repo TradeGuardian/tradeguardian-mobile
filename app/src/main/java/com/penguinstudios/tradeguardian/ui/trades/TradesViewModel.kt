@@ -51,4 +51,12 @@ class TradesViewModel @Inject constructor(
             _uiState.emit(TradesUIState.NoTrades)
         }
     }
+
+    suspend fun updateTrade(trade: Trade) {
+        val index = trades.indexOfFirst { it.id == trade.id }
+        if (index >= 0) {
+            trades[index] = trade
+            _uiState.emit(TradesUIState.UpdateTrade(index))
+        }
+    }
 }

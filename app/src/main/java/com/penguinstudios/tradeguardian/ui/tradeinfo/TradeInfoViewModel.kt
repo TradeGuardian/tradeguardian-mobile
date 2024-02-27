@@ -23,6 +23,8 @@ import com.penguinstudios.tradeguardian.data.model.userRole
 import com.penguinstudios.tradeguardian.util.CustomGasProvider
 import com.penguinstudios.tradeguardian.util.WalletUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
@@ -40,7 +42,7 @@ class TradeInfoViewModel @Inject constructor(
     val uiState = _uiState.asSharedFlow()
     lateinit var trade: Trade
 
-    fun initTrade(trade: Trade) {
+    fun loadTrade(trade: Trade) {
         this.trade = trade
     }
 
@@ -48,7 +50,7 @@ class TradeInfoViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 _uiState.emit(TradeInfoUIState.ShowProgressDeposit)
-                //Check if user already deposited
+
                 if (remoteRepository.hasDeposited(
                         trade.contractAddress,
                         walletRepository.credentials.address
@@ -250,14 +252,20 @@ class TradeInfoViewModel @Inject constructor(
         )
     }
 
-
-    fun setTradeInfo() {
+    fun setTradeInfo(isLoadedFirstTime: Boolean) {
         viewModelScope.launch {
             try {
-                _uiState.emit(TradeInfoUIState.ShowStepIndicatorProgress)
+                if (isLoadedFirstTime) {
+                    _uiState.emit(TradeInfoUIState.ShowStepIndicatorProgress)
+                }
 
                 val contractStatus = remoteRepository.getContractStatus(trade.contractAddress)
-                Timber.d("Contract address: " + contractStatus.statusName)
+
+                if (trade.contractStatusId != contractStatus.id) {
+                    val updatedTrade = trade.copy(contractStatusId = contractStatus.id)
+                    localRepository.updateTrade(updatedTrade)
+                    _uiState.emit(TradeInfoUIState.SuccessUpdateTradeStatus(updatedTrade))
+                }
 
                 val hasUserDeposited = remoteRepository.hasDeposited(
                     trade.contractAddress, trade.userWalletAddress
@@ -280,29 +288,36 @@ class TradeInfoViewModel @Inject constructor(
                 )
 
                 setDepositBtnState(contractStatus, hasUserDeposited)
-                setCurrentStepIndicator(contractStatus)
                 setAwaitingDeliveryBtnState(contractStatus)
                 setItemDeliveryStatus(contractStatus)
                 setReturnDepositStatus(contractStatus)
                 setTradeStatus(contractStatus)
                 setSettleStatus(contractStatus)
 
-                _uiState.emit(TradeInfoUIState.HideStepIndicatorProgress)
+                //Call last so the text is set before showing layout
+                setCurrentStepIndicator(contractStatus)
+
             } catch (e: Exception) {
                 Timber.e(e)
-                _uiState.emit(TradeInfoUIState.HideStepIndicatorProgress)
                 _uiState.emit(TradeInfoUIState.Error(e.message.toString()))
+            } finally {
+                _uiState.emit(TradeInfoUIState.HideStepIndicatorProgress)
+                _uiState.emit(TradeInfoUIState.HideSwipeRefreshProgress)
             }
         }
     }
 
     private suspend fun setSettleStatus(contractStatus: ContractStatus) {
         if (contractStatus == ContractStatus.ITEM_INCORRECT || contractStatus == ContractStatus.SETTLED) {
-            val hasSellerSettled = remoteRepository.hasSellerSettled(trade.contractAddress)
-            val hasBuyerSettled = remoteRepository.hasBuyerSettled(trade.contractAddress)
+            coroutineScope {
+                val hasSellerSettled =
+                    async { remoteRepository.hasSellerSettled(trade.contractAddress) }
+                val hasBuyerSettled =
+                    async { remoteRepository.hasBuyerSettled(trade.contractAddress) }
 
-            _uiState.emit(TradeInfoUIState.UpdateSellerSettleStatus(hasSellerSettled))
-            _uiState.emit(TradeInfoUIState.UpdateBuyerSettleStatus(hasBuyerSettled))
+                _uiState.emit(TradeInfoUIState.UpdateSellerSettleStatus(hasSellerSettled.await()))
+                _uiState.emit(TradeInfoUIState.UpdateBuyerSettleStatus(hasBuyerSettled.await()))
+            }
         }
     }
 
@@ -379,17 +394,21 @@ class TradeInfoViewModel @Inject constructor(
         when (contractStatus) {
             ContractStatus.AWAITING_DELIVERY -> {
                 if (trade.userRole == UserRole.SELLER) {
-                    _uiState.emit(TradeInfoUIState.ShowSellerDeliveryBtn)
+                    _uiState.emit(TradeInfoUIState.ShowSellerDeliveredBtn)
                 }
             }
 
             ContractStatus.ITEM_SENT -> {
+                _uiState.emit(TradeInfoUIState.HideSellerDeliveredBtn)
+
                 if (trade.userRole == UserRole.BUYER) {
                     _uiState.emit(TradeInfoUIState.ShowBuyerReceivedBtns)
                 }
             }
 
-            else -> {}
+            else -> {
+                _uiState.emit(TradeInfoUIState.HideBuyerReceivedBtns)
+            }
         }
     }
 
@@ -448,9 +467,13 @@ class TradeInfoViewModel @Inject constructor(
     private suspend fun setDepositBtnState(contractStatus: ContractStatus, hasDeposited: Boolean) {
         //Any other state means both users have already deposited
         if (contractStatus == ContractStatus.AWAITING_DEPOSIT) {
-            if (!hasDeposited) {
+            if (hasDeposited) {
+                _uiState.emit(TradeInfoUIState.HideDepositBtn)
+            } else {
                 _uiState.emit(TradeInfoUIState.ShowDepositBtn)
             }
+        } else {
+            _uiState.emit(TradeInfoUIState.HideDepositBtn)
         }
     }
 

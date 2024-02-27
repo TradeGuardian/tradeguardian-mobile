@@ -1,26 +1,18 @@
 package com.penguinstudios.tradeguardian.ui.wallet
 
-import android.app.Application
-import android.content.ContentValues
-import android.os.Environment
-import android.provider.MediaStore
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.gson.Gson
 import com.penguinstudios.tradeguardian.data.LocalRepository
 import com.penguinstudios.tradeguardian.data.RemoteRepository
 import com.penguinstudios.tradeguardian.data.WalletRepository
+import com.penguinstudios.tradeguardian.data.model.Network
 import com.penguinstudios.tradeguardian.util.WalletUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import timber.log.Timber
-import java.io.IOException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -38,7 +30,7 @@ class WalletViewModel @Inject constructor(
             try {
                 val walletBalance = remoteRepository.getWalletBalance().balance
                 val formattedWalletBalance =
-                    WalletUtil.weiToEther(walletBalance).toString() + " BNB"
+                    WalletUtil.weiToNetworkToken(walletBalance, Network.TEST_NET)
 
                 _uiState.emit(
                     WalletUIState.SuccessGetBalance(

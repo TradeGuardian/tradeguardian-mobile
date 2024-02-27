@@ -8,7 +8,7 @@ import timber.log.Timber
 import java.math.BigInteger
 
 @Entity(tableName = "trades")
-class Trade(
+data class Trade(
     @PrimaryKey(autoGenerate = true) val id: Int,
     @ColumnInfo(name = "network") val networkId: Int,
     @ColumnInfo(name = "contract_address") val contractAddress: String,

@@ -1,6 +1,7 @@
 package com.penguinstudios.tradeguardian.ui.tradeinfo
 
 import android.app.Dialog
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -55,9 +56,25 @@ class TradeInfoFragment(
         return binding.root
     }
 
+    private val greenColor by lazy {
+        ContextCompat.getColor(requireContext(), R.color.green_400)
+    }
+
+    private val redColor by lazy {
+        ContextCompat.getColor(requireContext(), R.color.red_400)
+    }
+
+    private val defaultTextColor by lazy {
+        ContextCompat.getColor(requireContext(), R.color.default_text_color)
+    }
+
+    private val purpleColor by lazy {
+        ContextCompat.getColor(requireContext(), R.color.purple_200)
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        tradeInfoViewModel.initTrade(trade)
+        tradeInfoViewModel.loadTrade(trade)
 
         binding.btnBack.setOnClickListener {
             dismiss()
@@ -103,6 +120,10 @@ class TradeInfoFragment(
         binding.btnCopyContractAddress.setOnClickListener {
             Toast.makeText(requireContext(), "Copied contract address", Toast.LENGTH_SHORT).show()
             ClipboardUtil.copyText(requireContext(), trade.contractAddress)
+        }
+
+        binding.swipeRefreshLayout.setOnRefreshListener {
+            tradeInfoViewModel.setTradeInfo(false)
         }
 
         lifecycleScope.launch {
@@ -161,29 +182,23 @@ class TradeInfoFragment(
                     is TradeInfoUIState.UpdateBuyerDepositStatus -> {
                         binding.tvBuyerDepositStatus.text = uiState.status
                         if (uiState.hasDeposited) {
-                            binding.tvBuyerDepositStatus.setTextColor(
-                                ContextCompat.getColor(
-                                    requireContext(),
-                                    R.color.green_400
-                                )
-                            )
+                            binding.tvBuyerDepositStatus.setTextColor(greenColor)
                         }
                     }
 
                     is TradeInfoUIState.UpdateSellerDepositStatus -> {
                         binding.tvSellerDepositStatus.text = uiState.status
                         if (uiState.hasDeposited) {
-                            binding.tvSellerDepositStatus.setTextColor(
-                                ContextCompat.getColor(
-                                    requireContext(),
-                                    R.color.green_400
-                                )
-                            )
+                            binding.tvSellerDepositStatus.setTextColor(greenColor)
                         }
                     }
 
                     is TradeInfoUIState.ShowDepositBtn -> {
                         binding.btnDeposit.visibility = View.VISIBLE
+                    }
+
+                    is TradeInfoUIState.HideDepositBtn -> {
+                        binding.btnDeposit.visibility = View.GONE
                     }
 
                     is TradeInfoUIState.Error -> {
@@ -228,116 +243,74 @@ class TradeInfoFragment(
                         binding.btnIncorrectItem.visibility = View.VISIBLE
                     }
 
-                    is TradeInfoUIState.ShowSellerDeliveryBtn -> {
+                    is TradeInfoUIState.HideBuyerReceivedBtns -> {
+                        binding.btnItemReceived.visibility = View.GONE
+                        binding.btnIncorrectItem.visibility = View.GONE
+                    }
+
+                    is TradeInfoUIState.ShowSellerDeliveredBtn -> {
                         binding.btnItemDelivered.visibility = View.VISIBLE
+                    }
+
+                    is TradeInfoUIState.HideSellerDeliveredBtn -> {
+                        binding.btnItemDelivered.visibility = View.GONE
                     }
 
                     is TradeInfoUIState.IncorrectItem -> {
                         binding.tvBuyerReceivedStatus.text = uiState.status
-                        binding.tvBuyerReceivedStatus.setTextColor(
-                            ContextCompat.getColor(
-                                requireContext(),
-                                R.color.red_400
-                            )
-                        )
+                        binding.tvBuyerReceivedStatus.setTextColor(redColor)
                     }
 
                     is TradeInfoUIState.UpdateBuyerReceivedStatus -> {
                         binding.tvBuyerReceivedStatus.text = uiState.status
                         if (uiState.isDelivered) {
-                            binding.tvBuyerReceivedStatus.setTextColor(
-                                ContextCompat.getColor(
-                                    requireContext(),
-                                    R.color.green_400
-                                )
-                            )
+                            binding.tvBuyerReceivedStatus.setTextColor(greenColor)
                         }
                     }
 
                     is TradeInfoUIState.UpdateSellerDeliveryStatus -> {
                         binding.tvSellerDeliveryStatus.text = uiState.status
                         if (uiState.isDelivered) {
-                            binding.tvSellerDeliveryStatus.setTextColor(
-                                ContextCompat.getColor(
-                                    requireContext(),
-                                    R.color.green_400
-                                )
-                            )
+                            binding.tvSellerDeliveryStatus.setTextColor(greenColor)
                         }
                     }
 
                     is TradeInfoUIState.UpdateSellerReturnDepositStatus -> {
                         binding.tvReturnSellerStatus.text = uiState.status
-                        binding.tvReturnSellerStatus.setTextColor(
-                            ContextCompat.getColor(
-                                requireContext(),
-                                R.color.green_400
-                            )
-                        )
+                        binding.tvReturnSellerStatus.setTextColor(greenColor)
                     }
 
                     is TradeInfoUIState.UpdateBuyerReturnDepositStatus -> {
                         binding.tvReturnBuyerStatus.text = uiState.status
-                        binding.tvReturnBuyerStatus.setTextColor(
-                            ContextCompat.getColor(
-                                requireContext(),
-                                R.color.green_400
-                            )
-                        )
+                        binding.tvReturnBuyerStatus.setTextColor(greenColor)
                     }
 
                     is TradeInfoUIState.UpdateSellerPayout -> {
                         binding.tvAmountPayedToSeller.text = uiState.status
-                        binding.tvAmountPayedToSeller.setTextColor(
-                            ContextCompat.getColor(
-                                requireContext(),
-                                R.color.green_400
-                            )
-                        )
+                        binding.tvAmountPayedToSeller.setTextColor(greenColor)
                     }
 
                     is TradeInfoUIState.UpdateFeePerParty -> {
                         binding.tvFeesPerParty.text = uiState.status
-                        binding.tvFeesPerParty.setTextColor(
-                            ContextCompat.getColor(
-                                requireContext(),
-                                R.color.default_text_color
-                            )
-                        )
+                        binding.tvFeesPerParty.setTextColor(defaultTextColor)
                     }
 
                     is TradeInfoUIState.ShowSuccessfulTradeStatus -> {
                         binding.tvTradeStatus.visibility = View.VISIBLE
                         binding.tvTradeStatus.text = "Trade Successful"
-                        binding.tvTradeStatus.setTextColor(
-                            ContextCompat.getColor(
-                                requireContext(),
-                                R.color.green_400
-                            )
-                        )
+                        binding.tvTradeStatus.setTextColor(greenColor)
                     }
 
                     is TradeInfoUIState.ShowIncorrectItemTradeStatus -> {
                         binding.tvTradeStatus.visibility = View.VISIBLE
                         binding.tvTradeStatus.text = "Deposits Locked"
-                        binding.tvTradeStatus.setTextColor(
-                            ContextCompat.getColor(
-                                requireContext(),
-                                R.color.red_400
-                            )
-                        )
-
+                        binding.tvTradeStatus.setTextColor(redColor)
                     }
 
                     is TradeInfoUIState.ShowSettledTradeStatus -> {
                         binding.tvTradeStatus.visibility = View.VISIBLE
                         binding.tvTradeStatus.text = "Trade Settled"
-                        binding.tvTradeStatus.setTextColor(
-                            ContextCompat.getColor(
-                                requireContext(),
-                                R.color.green_400
-                            )
-                        )
+                        binding.tvTradeStatus.setTextColor(greenColor)
                     }
 
                     is TradeInfoUIState.SuccessSettle -> {
@@ -353,40 +326,20 @@ class TradeInfoFragment(
                     is TradeInfoUIState.UpdateSellerSettleStatus -> {
                         if (uiState.hasRequestedToSettle) {
                             binding.tvSellerSettleStatus.text = "Seller has requested to settle"
-                            binding.tvSellerSettleStatus.setTextColor(
-                                ContextCompat.getColor(
-                                    requireContext(),
-                                    R.color.green_400
-                                )
-                            )
+                            binding.tvSellerSettleStatus.setTextColor(greenColor)
                         } else {
                             binding.tvSellerSettleStatus.text = "Seller has not requested to settle"
-                            binding.tvSellerSettleStatus.setTextColor(
-                                ContextCompat.getColor(
-                                    requireContext(),
-                                    R.color.default_text_color
-                                )
-                            )
+                            binding.tvSellerSettleStatus.setTextColor(defaultTextColor)
                         }
                     }
 
                     is TradeInfoUIState.UpdateBuyerSettleStatus -> {
                         if (uiState.hasRequestedToSettle) {
                             binding.tvBuyerSettleStatus.text = "Buyer has requested to settle"
-                            binding.tvBuyerSettleStatus.setTextColor(
-                                ContextCompat.getColor(
-                                    requireContext(),
-                                    R.color.green_400
-                                )
-                            )
+                            binding.tvBuyerSettleStatus.setTextColor(greenColor)
                         } else {
                             binding.tvBuyerSettleStatus.text = "Buyer has not requested to settle"
-                            binding.tvBuyerSettleStatus.setTextColor(
-                                ContextCompat.getColor(
-                                    requireContext(),
-                                    R.color.default_text_color
-                                )
-                            )
+                            binding.tvBuyerSettleStatus.setTextColor(defaultTextColor)
                         }
                     }
 
@@ -397,23 +350,31 @@ class TradeInfoFragment(
                     is TradeInfoUIState.HideStepIndicatorProgress -> {
                         binding.progressStepIndicator.visibility = View.GONE
                     }
+
+                    is TradeInfoUIState.HideSwipeRefreshProgress -> {
+                        binding.swipeRefreshLayout.isRefreshing = false
+                    }
+
+                    is TradeInfoUIState.SuccessUpdateTradeStatus -> {
+                        tradesViewModel.updateTrade(uiState.trade)
+                    }
                 }
             }
         }
 
-        tradeInfoViewModel.setTradeInfo()
+        tradeInfoViewModel.setTradeInfo(true)
     }
 
     // @formatter:off
     private fun setCurrentStepIndicator(step: Int, showSettleStatus: Boolean) {
         // Common actions for all steps
-        binding.tvStaticAwaitingDeposit.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
+        binding.tvStaticAwaitingDeposit.setTextColor(Color.WHITE)
         binding.layoutAwaitingDeposit.visibility = View.VISIBLE
 
         when (step) {
             1 -> {
                 binding.circle1.setBackgroundResource(R.drawable.circle_holo_purple)
-                binding.circle1Text.setTextColor(ContextCompat.getColor(requireContext(), R.color.purple_200))
+                binding.circle1Text.setTextColor(purpleColor)
             }
             2 -> {
                 fillIndicatorOne()
@@ -423,10 +384,10 @@ class TradeInfoFragment(
                 fillIndicatorOne()
                 setupStepTwo()
                 fillIndicatorTwo()
-                binding.line2.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.purple_200))
+                binding.line2.setBackgroundColor(purpleColor)
                 binding.circle3.setBackgroundResource(R.drawable.circle_filled_purple)
-                binding.circle3Text.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
-                binding.tvStaticReturnDeposits.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
+                binding.circle3Text.setTextColor(Color.WHITE)
+                binding.tvStaticReturnDeposits.setTextColor(Color.WHITE)
 
                 if(showSettleStatus){
                     binding.layoutSettleStatus.visibility = View.VISIBLE
@@ -439,23 +400,23 @@ class TradeInfoFragment(
 
     private fun setupStepTwo() {
         binding.circle1.setBackgroundResource(R.drawable.circle_filled_purple)
-        binding.circle1Text.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
-        binding.line1.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.purple_200))
-        binding.tvStaticAwaitingItemDelivery.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
+        binding.circle1Text.setTextColor(Color.WHITE)
+        binding.line1.setBackgroundColor(purpleColor)
+        binding.tvStaticAwaitingItemDelivery.setTextColor(Color.WHITE)
         binding.circle2.setBackgroundResource(R.drawable.circle_holo_purple)
-        binding.circle2Text.setTextColor(ContextCompat.getColor(requireContext(), R.color.purple_200))
+        binding.circle2Text.setTextColor(purpleColor)
         binding.layoutAwaitingItem.visibility = View.VISIBLE
     }
     // @formatter:on
 
     private fun fillIndicatorOne() {
         binding.circle1.setBackgroundResource(R.drawable.circle_filled_purple)
-        binding.circle1Text.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
+        binding.circle1Text.setTextColor(Color.WHITE)
     }
 
     private fun fillIndicatorTwo() {
         binding.circle2.setBackgroundResource(R.drawable.circle_filled_purple)
-        binding.circle2Text.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
+        binding.circle2Text.setTextColor(Color.WHITE)
     }
 
     private fun showProgressDeposit() {

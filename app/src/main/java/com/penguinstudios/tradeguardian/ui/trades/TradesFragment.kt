@@ -69,12 +69,15 @@ class TradesFragment : Fragment(), TradesAdapter.Callback {
                     is TradesUIState.DeleteTrade -> {
                         tradesAdapter.notifyItemRemoved(uiState.adapterPosition)
                     }
+
+                    is TradesUIState.UpdateTrade -> {
+                        tradesAdapter.notifyItemChanged(uiState.adapterPosition)
+                    }
                 }
             }
         }
 
         viewModel.getTrades()
-
     }
 
     override fun onTradeClick(adapterPosition: Int) {

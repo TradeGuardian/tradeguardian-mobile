@@ -1,5 +1,7 @@
 package com.penguinstudios.tradeguardian.ui.tradeinfo
 
+import com.penguinstudios.tradeguardian.data.model.Trade
+
 sealed class TradeInfoUIState {
     data class SuccessDeposit(
         val contractAddress: String,
@@ -34,6 +36,7 @@ sealed class TradeInfoUIState {
         TradeInfoUIState()
 
     object ShowDepositBtn : TradeInfoUIState()
+    object HideDepositBtn : TradeInfoUIState()
 
     data class UpdateSellerDeliveryStatus(val status: String, val isDelivered: Boolean) :
         TradeInfoUIState()
@@ -46,7 +49,10 @@ sealed class TradeInfoUIState {
     object ShowSettledTradeStatus : TradeInfoUIState()
 
     object ShowBuyerReceivedBtns : TradeInfoUIState()
-    object ShowSellerDeliveryBtn : TradeInfoUIState()
+    object HideBuyerReceivedBtns : TradeInfoUIState()
+
+    object ShowSellerDeliveredBtn : TradeInfoUIState()
+    object HideSellerDeliveredBtn : TradeInfoUIState()
 
     data class UpdateSellerPayout(val status: String) : TradeInfoUIState()
     data class UpdateSellerReturnDepositStatus(val status: String) : TradeInfoUIState()
@@ -80,7 +86,10 @@ sealed class TradeInfoUIState {
     ) : TradeInfoUIState()
 
     object ShowStepIndicatorProgress : TradeInfoUIState()
-    object HideStepIndicatorProgress: TradeInfoUIState()
+    object HideStepIndicatorProgress : TradeInfoUIState()
+    object HideSwipeRefreshProgress : TradeInfoUIState()
+
+    data class SuccessUpdateTradeStatus(val trade: Trade) : TradeInfoUIState()
 
     data class Error(val message: String) : TradeInfoUIState()
 }

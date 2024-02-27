@@ -28,6 +28,10 @@ class LocalRepository @Inject constructor(
         appDatabase.tradesDao().insertTrade(trade)
     }
 
+    suspend fun updateTrade(trade: Trade){
+        appDatabase.tradesDao().updateTrade(trade)
+    }
+
     suspend fun deleteTrade(contractAddress: String) {
         appDatabase.tradesDao().deleteTrade(contractAddress)
     }

@@ -28,14 +28,13 @@ class WelcomeBackViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val walletName = sharedPrefManager.walletName
-                if (walletName == null) {
-                    _uiState.emit(WelcomeBackUIState.Error("Could not find wallet file. Must reset wallet."))
-                    return@launch
-                }
+                    ?: throw Exception("Could not find wallet file. Must reset wallet.")
+
                 withContext(Dispatchers.IO) {
                     val walletPath = File(filesDir, walletName)
                     walletRepository.unlockWallet(password, walletPath)
                 }
+
                 _uiState.emit(WelcomeBackUIState.SuccessUnlockWallet)
             } catch (e: Exception) {
                 Timber.e(e)

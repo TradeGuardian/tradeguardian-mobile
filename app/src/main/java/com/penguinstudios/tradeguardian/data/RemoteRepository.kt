@@ -230,9 +230,7 @@ class RemoteRepository @Inject constructor(
         }
     }
 
-    suspend fun isUserInvolvedInTrade(contractAddress: String): Boolean {
-        val buyerAddress = getBuyerAddress(contractAddress)
-        val sellerAddress = getSellerAddress(contractAddress)
+    fun isUserInvolvedInTrade(buyerAddress: String, sellerAddress: String): Boolean {
         val userWalletAddress = walletRepository.credentials.address
         return userWalletAddress == buyerAddress || userWalletAddress == sellerAddress
     }
