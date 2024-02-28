@@ -5,7 +5,7 @@ TradeGuardian is a specialized DeFi protocol designed to provide an extra layer 
 
 # Android development
 
-- Written entirely in Kotlin
+- Written in Kotlin
 - Uses the Web3j Ethereum library
 - Utilizes the Web3j cli to create a wrapper for the smart contract
 - Implements MVVM Clean Architecture 
