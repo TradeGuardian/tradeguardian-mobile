@@ -45,8 +45,8 @@ class TradesAdapter(
         holder.tvItemPrice.text = list[i].getFormattedItemPrice()
 
         val statusColor = when (ContractStatus.getStatusById(list[i].contractStatusId)) {
-            ContractStatus.AWAITING_DEPOSIT, ContractStatus.AWAITING_DELIVERY -> yellowColor
-            ContractStatus.ITEM_SENT, ContractStatus.ITEM_RECEIVED, ContractStatus.SETTLED -> greenColor
+            ContractStatus.AWAITING_DEPOSIT, ContractStatus.AWAITING_DELIVERY, ContractStatus.ITEM_SENT -> yellowColor
+            ContractStatus.ITEM_RECEIVED, ContractStatus.SETTLED -> greenColor
             ContractStatus.ITEM_INCORRECT, ContractStatus.TRADE_CANCELED -> redColor
         }
         holder.tvStatus.setTextColor(statusColor)
