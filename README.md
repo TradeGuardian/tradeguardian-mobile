@@ -3,6 +3,8 @@ TradeGuardian is a specialized DeFi protocol designed to provide an extra layer 
 
 [![Playstore](https://i.imgur.com/egBW0oo.png)](https://play.google.com/store/apps/details?id=com.penguinstudios.tradeguardian)
 
+https://www.youtube.com/watch?v=ybx3yy7fKNc
+
 # Android development
 
 - Written in Kotlin
