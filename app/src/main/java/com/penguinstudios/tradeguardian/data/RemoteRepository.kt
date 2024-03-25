@@ -4,6 +4,7 @@ import com.penguinstudios.tradeguardian.contract.Escrow
 import com.penguinstudios.tradeguardian.data.model.ContractDeployment
 import com.penguinstudios.tradeguardian.data.model.ContractStatus
 import com.penguinstudios.tradeguardian.data.model.ExchangeRateResponse
+import com.penguinstudios.tradeguardian.data.model.Network
 import com.penguinstudios.tradeguardian.data.validator.EtherAmountValidator
 import com.penguinstudios.tradeguardian.util.Constants
 import com.penguinstudios.tradeguardian.util.CustomGasProvider
@@ -23,6 +24,7 @@ import org.web3j.protocol.core.methods.response.EthEstimateGas
 import org.web3j.protocol.core.methods.response.EthGasPrice
 import org.web3j.protocol.core.methods.response.EthGetBalance
 import org.web3j.protocol.core.methods.response.TransactionReceipt
+import org.web3j.protocol.http.HttpService
 import org.web3j.tx.Transfer
 import org.web3j.tx.gas.DefaultGasProvider
 import org.web3j.tx.gas.StaticGasProvider
@@ -34,10 +36,16 @@ import javax.inject.Singleton
 
 @Singleton
 class RemoteRepository @Inject constructor(
-    private val web3j: Web3j,
     private val walletRepository: WalletRepository,
+    private val localRepository: LocalRepository,
     private val binanceService: BinanceService
 ) {
+
+    private var web3j: Web3j = Web3j.build(HttpService(localRepository.getSelectedNetwork().baseUrl))
+
+    fun updateSelectedNetwork(network: Network){
+        web3j = Web3j.build(HttpService(network.baseUrl))
+    }
 
     suspend fun send(sendToAddress: String, amount: String): TransactionReceipt {
         return withContext(Dispatchers.IO) {
@@ -176,9 +184,9 @@ class RemoteRepository @Inject constructor(
         }
     }
 
-    suspend fun getBnbUsdExchangeRate(): ExchangeRateResponse {
+    suspend fun getBnbUsdExchangeRate(selectedNetwork: Network): ExchangeRateResponse {
         return withContext(Dispatchers.IO) {
-            binanceService.getPrice(Constants.BNB_USDT_EXCHANGE_RATE_SYMBOL)
+            binanceService.getPrice(selectedNetwork.priceQuerySymbol)
         }
     }
 

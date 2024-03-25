@@ -6,7 +6,11 @@ sealed class WalletUIState {
         val walletBalance: String
     ) : WalletUIState()
 
+    object ShowProgressWalletBalance : WalletUIState()
+    object HideProgressWalletBalance : WalletUIState()
     object SuccessExportTrade : WalletUIState()
+
+    data class SetSpinnerSelectedNetwork(val position: Int) : WalletUIState()
 
     data class Error(val message: String) : WalletUIState()
 }

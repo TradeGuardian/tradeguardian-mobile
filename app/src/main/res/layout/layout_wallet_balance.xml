@@ -5,14 +5,13 @@
     android:background="@drawable/bgr_spinner_network">
 
     <ImageView
-        android:id="@+id/iv_static_token_logo"
+        android:id="@+id/iv_network_image"
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_marginStart="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/bnb" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/tv_wallet_address"
@@ -27,7 +26,7 @@
         android:textColor="@color/default_text_color"
         app:layout_constraintBottom_toTopOf="@+id/tv_wallet_balance"
         app:layout_constraintEnd_toStartOf="@+id/btn_wallet_more_options"
-        app:layout_constraintStart_toEndOf="@id/iv_static_token_logo"
+        app:layout_constraintStart_toEndOf="@id/iv_network_image"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_chainStyle="packed" />
 
@@ -42,7 +41,7 @@
         android:textColor="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/btn_wallet_more_options"
-        app:layout_constraintStart_toEndOf="@id/iv_static_token_logo"
+        app:layout_constraintStart_toEndOf="@id/iv_network_image"
         app:layout_constraintTop_toBottomOf="@+id/tv_wallet_address" />
 
     <ImageView

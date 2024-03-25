@@ -1,34 +1,57 @@
 package com.penguinstudios.tradeguardian.data.model
 
+import com.penguinstudios.tradeguardian.R
+
 enum class Network(
     val id: Int,
     val baseUrl: String,
     val networkName: String,
     val networkTokenName: String,
     val chainId: Int,
-    val explorerUrl: String
+    val explorerUrl: String,
+    val networkImage: Int,
+    val priceQuerySymbol: String
 ) {
-    TEST_NET(
+    BOTANIX_TESTNET(
         0,
-        "https://data-seed-prebsc-1-s1.bnbchain.org:8545/",
-        "BNB Smart Chain Testnet",
-        "BNB",
-        97,
-        "https://testnet.bscscan.com/address/"
+         "https://node.botanixlabs.dev",
+        "Botanix Testnet",
+        "BTC",
+        3636,
+        "https://blockscout.botanixlabs.dev/",
+        R.drawable.botanix,
+        "BTCUSDT"
     ),
-    MAIN_NET(
+    SEPOLIA_TESTNET(
         1,
-        "https://1rpc.io/bnb",
-        "BNB Smart Chain Mainnet",
-        "BNB",
-        56,
-        "https://bscscan.com/address/"
+        "https://ethereum-sepolia-rpc.publicnode.com",
+        "Sepolia Testnet",
+        "ETH",
+        11155111,
+        "https://sepolia.etherscan.io/",
+        R.drawable.ethereum,
+        "ETHUSDT"
+    ),
+    ETHEREUM_MAINNET(
+        2,
+        "https://ethereum-rpc.publicnode.com",
+        "Ethereum Mainnet",
+        "ETH",
+        1,
+        "https://etherscan.io/",
+        R.drawable.ethereum,
+        "ETHUSDT"
     );
 
     companion object {
         fun getNetworkById(id: Int): Network {
             return values().firstOrNull { it.id == id }
                 ?: throw IllegalStateException("Invalid id: $id")
+        }
+
+        fun getFirstAvailableNetwork(): Network {
+            return values().firstOrNull()
+                ?: throw NoSuchElementException("No networks are available.")
         }
     }
 }

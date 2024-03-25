@@ -64,6 +64,7 @@ class CreateTradeFragment : Fragment() {
             KeyboardUtils.hideKeyboard(binding.etDescription)
 
             createTradeViewModel.onCreateTradeClick(
+                Network.values()[spinnerBinding.spinnerNetwork.selectedItemPosition],
                 userRole,
                 binding.etCounterPartyAddress.text.toString(),
                 binding.etItemPrice.text.toString(),
@@ -104,7 +105,10 @@ class CreateTradeFragment : Fragment() {
 
     private fun initNetworkSpinner() {
         val spinnerItems = mutableListOf<String>()
-        spinnerItems.add(Network.TEST_NET.networkName)
+
+        Network.values().forEach { network ->
+            spinnerItems.add(network.networkName)
+        }
 
         val spinnerAdapter = ArrayAdapter(
             requireContext(), R.layout.spinner_network_drop_down, spinnerItems

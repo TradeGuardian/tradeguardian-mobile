@@ -41,6 +41,7 @@ class CreateTradeViewModel @Inject constructor(
     private lateinit var gasLimit: BigInteger
 
     fun onCreateTradeClick(
+        selectedNetwork: Network,
         userRole: UserRole,
         counterPartyAddress: String,
         itemPrice: String,
@@ -49,7 +50,7 @@ class CreateTradeViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 contractDeployment = ContractDeployment.builder()
-                    .network(Network.TEST_NET)
+                    .network(selectedNetwork)
                     .feeRecipientAddress(Constants.FEE_RECIPIENT)
                     .userRole(userRole)
                     .itemPrice(itemPrice)
@@ -77,7 +78,7 @@ class CreateTradeViewModel @Inject constructor(
                 // Start all operations concurrently
                 val gasPriceDeferred = async { estimateGasPrice() }
                 val gasLimitDeferred = async { estimateDeployContractGasLimit(contractDeployment) }
-                val exchangeRateDeferred = async { getBnbUsdExchangeRate() }
+                val exchangeRateDeferred = async { getBnbUsdExchangeRate(contractDeployment.network) }
 
                 // Await all results
                 val gasPriceResult = gasPriceDeferred.await()
@@ -145,9 +146,9 @@ class CreateTradeViewModel @Inject constructor(
         }
     }
 
-    private suspend fun getBnbUsdExchangeRate(): ExchangeRateResponse? {
+    private suspend fun getBnbUsdExchangeRate(selectedNetwork: Network): ExchangeRateResponse? {
         return try {
-            remoteRepository.getBnbUsdExchangeRate()
+            remoteRepository.getBnbUsdExchangeRate(selectedNetwork)
         } catch (e: TimeoutCancellationException) {
             Timber.e("Get BNB/USD exchange rate timed out")
             null

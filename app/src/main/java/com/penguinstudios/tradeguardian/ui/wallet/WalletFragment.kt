@@ -4,11 +4,13 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import com.bumptech.glide.Glide
 import com.penguinstudios.tradeguardian.R
 import com.penguinstudios.tradeguardian.data.model.Network
 import com.penguinstudios.tradeguardian.databinding.LayoutSpinnerBinding
@@ -66,11 +68,22 @@ class WalletFragment : Fragment(), WalletPopupWindow.Callback {
         lifecycleScope.launch {
             viewModel.uiState.collect { uiState ->
                 when (uiState) {
+                    is WalletUIState.SetSpinnerSelectedNetwork -> {
+                        spinnerBinding.spinnerNetwork.setSelection(uiState.position)
+                    }
+
+                    is WalletUIState.ShowProgressWalletBalance -> {
+                        binding.layoutProgressWalletBalance.root.visibility = View.VISIBLE
+                    }
+
+                    is WalletUIState.HideProgressWalletBalance -> {
+                        binding.layoutProgressWalletBalance.root.visibility = View.GONE
+                    }
+
                     is WalletUIState.SuccessGetBalance -> {
                         binding.layoutWalletBalance.tvWalletAddress.text = uiState.walletAddress
                         binding.layoutWalletBalance.tvWalletBalance.text = uiState.walletBalance
                         binding.layoutWalletBalance.root.visibility = View.VISIBLE
-                        binding.layoutProgressWalletBalance.root.visibility = View.INVISIBLE
                         binding.swipeRefreshLayout.isRefreshing = false
                     }
 
@@ -84,7 +97,7 @@ class WalletFragment : Fragment(), WalletPopupWindow.Callback {
 
                     is WalletUIState.Error -> {
                         binding.swipeRefreshLayout.isRefreshing = false
-                        Toast.makeText(requireContext(), uiState.message, Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext(), uiState.message, Toast.LENGTH_LONG).show()
                     }
                 }
             }
@@ -95,7 +108,10 @@ class WalletFragment : Fragment(), WalletPopupWindow.Callback {
 
     private fun initNetworkSpinner() {
         val spinnerItems = mutableListOf<String>()
-        spinnerItems.add(Network.TEST_NET.networkName)
+
+        Network.values().forEach { network ->
+            spinnerItems.add(network.networkName)
+        }
 
         val spinnerAdapter = ArrayAdapter(
             requireContext(), R.layout.spinner_network_drop_down, spinnerItems
@@ -103,6 +119,32 @@ class WalletFragment : Fragment(), WalletPopupWindow.Callback {
 
         spinnerAdapter.setDropDownViewResource(R.layout.spinner_network_drop_down)
         spinnerBinding.spinnerNetwork.adapter = spinnerAdapter
+
+        spinnerBinding.spinnerNetwork.onItemSelectedListener =
+            object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(
+                    parent: AdapterView<*>?,
+                    view: View?,
+                    position: Int,
+                    id: Long
+                ) {
+                    val selectedNetworkName = spinnerItems[position]
+                    val selectedNetwork =
+                        Network.values().firstOrNull { it.networkName == selectedNetworkName }
+                            ?: throw IllegalArgumentException("Network not found: $selectedNetworkName")
+
+                    viewModel.updateSelectedNetwork(selectedNetwork)
+
+                    Glide.with(this@WalletFragment)
+                        .load(selectedNetwork.networkImage)
+                        .circleCrop()
+                        .into(binding.layoutWalletBalance.ivNetworkImage)
+                }
+
+                override fun onNothingSelected(parent: AdapterView<*>?) {
+                    // This is called when nothing is selected
+                }
+            }
     }
 
     override fun onClearWallet() {

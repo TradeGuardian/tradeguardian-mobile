@@ -10,11 +10,13 @@ import androidx.fragment.app.DialogFragment
 import com.bumptech.glide.Glide
 import com.google.zxing.BarcodeFormat
 import com.journeyapps.barcodescanner.BarcodeEncoder
+import com.penguinstudios.tradeguardian.data.LocalRepository
 import com.penguinstudios.tradeguardian.data.model.Network
 import com.penguinstudios.tradeguardian.databinding.QrWalletFragmentBinding
 import com.penguinstudios.tradeguardian.util.ClipboardUtil
 import com.penguinstudios.tradeguardian.util.SpacingUtil
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class QrWalletFragment(
@@ -24,6 +26,9 @@ class QrWalletFragment(
     companion object {
         private const val QR_SIZE = 150
     }
+
+    @Inject
+    lateinit var localRepository: LocalRepository
 
     private lateinit var binding: QrWalletFragmentBinding
 
@@ -50,7 +55,7 @@ class QrWalletFragment(
         super.onViewCreated(view, savedInstanceState)
 
         binding.tvWalletAddress.text = walletAddress
-        binding.tvTitle.text = Network.TEST_NET.networkName
+        binding.tvTitle.text = localRepository.getSelectedNetwork().networkName
 
         val bitmap = createQrCode(walletAddress)
         Glide.with(this)

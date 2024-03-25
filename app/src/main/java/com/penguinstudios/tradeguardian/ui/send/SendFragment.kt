@@ -20,6 +20,7 @@ import com.penguinstudios.tradeguardian.databinding.SendFragmentBinding
 import com.penguinstudios.tradeguardian.util.KeyboardUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @AndroidEntryPoint
 class SendFragment : DialogFragment() {
@@ -59,8 +60,9 @@ class SendFragment : DialogFragment() {
 
         binding.btnConfirm.setOnClickListener {
             KeyboardUtils.hideKeyboard(binding.etAmount)
-            
+
             sendViewModel.onSend(
+                Network.values()[spinnerBinding.spinnerNetwork.selectedItemPosition],
                 binding.etSendToAddress.text.toString(),
                 binding.etAmount.text.toString()
             )
@@ -102,7 +104,10 @@ class SendFragment : DialogFragment() {
 
     private fun initSpinner() {
         val spinnerItems = mutableListOf<String>()
-        spinnerItems.add(Network.TEST_NET.networkName)
+
+        Network.values().forEach { network ->
+            spinnerItems.add(network.networkName)
+        }
 
         val spinnerAdapter = ArrayAdapter(
             requireContext(), R.layout.spinner_network_drop_down, spinnerItems

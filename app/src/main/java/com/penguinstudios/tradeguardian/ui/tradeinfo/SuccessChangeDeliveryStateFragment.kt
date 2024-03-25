@@ -7,15 +7,22 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.fragment.app.DialogFragment
+import com.penguinstudios.tradeguardian.data.LocalRepository
 import com.penguinstudios.tradeguardian.data.model.Network
 import com.penguinstudios.tradeguardian.databinding.SuccessChangeDeliveryStateFragmentBinding
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class SuccessChangeDeliveryStateFragment(
     private val contractAddress: String,
     private val txHash: String,
     private val formattedDeliveryState: String,
     private val formattedGasUsed: String
 ) : DialogFragment() {
+
+    @Inject
+    lateinit var localRepository: LocalRepository
 
     private lateinit var binding: SuccessChangeDeliveryStateFragmentBinding
 
@@ -45,7 +52,7 @@ class SuccessChangeDeliveryStateFragment(
         binding.tvGasUsed.text = formattedGasUsed
 
         binding.btnViewExplorer.setOnClickListener {
-            val url = Network.TEST_NET.explorerUrl + contractAddress
+            val url = localRepository.getSelectedNetwork().explorerUrl + contractAddress
             val builder = CustomTabsIntent.Builder()
             val customTabsIntent = builder.build()
             customTabsIntent.launchUrl(requireContext(), Uri.parse(url))

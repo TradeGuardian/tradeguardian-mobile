@@ -21,7 +21,7 @@ import javax.inject.Inject
 class AddTradeViewModel @Inject constructor(
     private val remoteRepository: RemoteRepository,
     private val walletRepository: WalletRepository,
-    private val localRepository: LocalRepository
+    private val localRepository: LocalRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableSharedFlow<AddTradeUIState>()
@@ -70,7 +70,7 @@ class AddTradeViewModel @Inject constructor(
         buyerAddress: String,
         sellerAddress: String
     ): Trade {
-        val network = Network.TEST_NET
+        val network = localRepository.getSelectedNetwork()
         val contractStatusId = remoteRepository.getContractStatus(contractAddress)
         val dateCreated = remoteRepository.getDateCreatedSeconds(contractAddress)
         val itemPriceWei = remoteRepository.getItemPriceWei(contractAddress)

@@ -2,6 +2,7 @@ package com.penguinstudios.tradeguardian.ui.send
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.penguinstudios.tradeguardian.data.LocalRepository
 import com.penguinstudios.tradeguardian.data.RemoteRepository
 import com.penguinstudios.tradeguardian.data.WalletRepository
 import com.penguinstudios.tradeguardian.data.model.Network
@@ -23,7 +24,7 @@ class SendViewModel @Inject constructor(
     private val _uiState = MutableSharedFlow<SendUIState>()
     val uiState = _uiState.asSharedFlow()
 
-    fun onSend(sendToAddress: String, amount: String) {
+    fun onSend(selectedNetwork: Network, sendToAddress: String, amount: String) {
         viewModelScope.launch {
             try {
                 _uiState.emit(SendUIState.ShowProgressSend)
@@ -32,7 +33,7 @@ class SendViewModel @Inject constructor(
 
                 val calculateGasCostEther = txReceipt.gasUsed.multiply(CustomGasProvider.GAS_PRICE)
                 val formattedGasCost = WalletUtil.weiToEther(calculateGasCostEther)
-                    .toString() + " " + Network.TEST_NET.networkTokenName
+                    .toString() + " " + selectedNetwork.networkTokenName
 
                 _uiState.emit(SendUIState.HideProgressSend)
 
@@ -41,7 +42,7 @@ class SendViewModel @Inject constructor(
                         walletRepository.credentials.address,
                         txReceipt.transactionHash,
                         sendToAddress,
-                        "$amount ${Network.TEST_NET.networkTokenName}",
+                        "$amount ${selectedNetwork.networkTokenName}",
                         formattedGasCost
                     )
                 )

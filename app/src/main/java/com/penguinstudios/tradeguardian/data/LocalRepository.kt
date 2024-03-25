@@ -5,6 +5,7 @@ import android.content.ContentValues
 import android.os.Environment
 import android.provider.MediaStore
 import com.google.gson.Gson
+import com.penguinstudios.tradeguardian.data.model.Network
 import com.penguinstudios.tradeguardian.data.model.Trade
 import com.penguinstudios.tradeguardian.util.Constants
 import kotlinx.coroutines.Dispatchers
@@ -17,7 +18,8 @@ import javax.inject.Singleton
 class LocalRepository @Inject constructor(
     private val application: Application,
     private val walletRepository: WalletRepository,
-    private val appDatabase: AppDatabase
+    private val appDatabase: AppDatabase,
+    private val sharedPrefManager: SharedPrefManager
 ) {
 
     suspend fun getTrades(userWalletAddress: String): List<Trade> {
@@ -28,7 +30,7 @@ class LocalRepository @Inject constructor(
         appDatabase.tradesDao().insertTrade(trade)
     }
 
-    suspend fun updateTrade(trade: Trade){
+    suspend fun updateTrade(trade: Trade) {
         appDatabase.tradesDao().updateTrade(trade)
     }
 
@@ -39,6 +41,10 @@ class LocalRepository @Inject constructor(
     suspend fun tradeExists(contractAddress: String): Boolean {
         val userWalletAddress = walletRepository.credentials.address
         return getTrades(userWalletAddress).any { it.contractAddress == contractAddress.lowercase() }
+    }
+
+    fun getSelectedNetwork(): Network {
+        return Network.getNetworkById(sharedPrefManager.selectedNetworkId)
     }
 
     suspend fun exportTrades() {

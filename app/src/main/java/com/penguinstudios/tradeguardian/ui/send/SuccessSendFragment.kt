@@ -7,11 +7,15 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.fragment.app.DialogFragment
+import com.penguinstudios.tradeguardian.data.LocalRepository
 import com.penguinstudios.tradeguardian.data.model.Network
 import com.penguinstudios.tradeguardian.databinding.SuccessCreateTradeFragmentBinding
 import com.penguinstudios.tradeguardian.databinding.SuccessDepositFragmentBinding
 import com.penguinstudios.tradeguardian.databinding.SuccessSendFragmentBinding
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class SuccessSendFragment(
     private val userWalletAddress: String,
     private val txHash: String,
@@ -19,6 +23,9 @@ class SuccessSendFragment(
     private val formattedAmountSent: String,
     private val formattedGasUsed: String
 ) : DialogFragment() {
+
+    @Inject
+    lateinit var localRepository: LocalRepository
 
     private lateinit var binding: SuccessSendFragmentBinding
 
@@ -49,7 +56,7 @@ class SuccessSendFragment(
         binding.tvGasUsed.text = formattedGasUsed
 
         binding.btnViewExplorer.setOnClickListener {
-            val url = Network.TEST_NET.explorerUrl + userWalletAddress
+            val url = localRepository.getSelectedNetwork().explorerUrl + userWalletAddress
             val builder = CustomTabsIntent.Builder()
             val customTabsIntent = builder.build()
             customTabsIntent.launchUrl(requireContext(), Uri.parse(url))
