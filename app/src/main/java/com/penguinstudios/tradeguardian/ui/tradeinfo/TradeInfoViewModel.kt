@@ -20,6 +20,11 @@ import com.penguinstudios.tradeguardian.data.model.getSellerDepositAmount
 import com.penguinstudios.tradeguardian.data.model.network
 import com.penguinstudios.tradeguardian.data.model.networkTokenName
 import com.penguinstudios.tradeguardian.data.model.userRole
+import com.penguinstudios.tradeguardian.data.usecase.CancelTradeUseCase
+import com.penguinstudios.tradeguardian.data.usecase.DepositUseCase
+import com.penguinstudios.tradeguardian.data.usecase.ContractInfoUseCase
+import com.penguinstudios.tradeguardian.data.usecase.SettleUseCase
+import com.penguinstudios.tradeguardian.data.usecase.UpdateItemStateUseCase
 import com.penguinstudios.tradeguardian.util.CustomGasProvider
 import com.penguinstudios.tradeguardian.util.WalletUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -35,7 +40,12 @@ import javax.inject.Inject
 class TradeInfoViewModel @Inject constructor(
     private val walletRepository: WalletRepository,
     private val remoteRepository: RemoteRepository,
-    private val localRepository: LocalRepository
+    private val localRepository: LocalRepository,
+    private val depositUseCase: DepositUseCase,
+    private val cancelTradeUseCase: CancelTradeUseCase,
+    private val updateItemStateUseCase: UpdateItemStateUseCase,
+    private val settleUseCase: SettleUseCase,
+    private val contractInfoUseCase: ContractInfoUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableSharedFlow<TradeInfoUIState>()
@@ -51,7 +61,7 @@ class TradeInfoViewModel @Inject constructor(
             try {
                 _uiState.emit(TradeInfoUIState.ShowProgressDeposit)
 
-                if (remoteRepository.hasDeposited(
+                if (contractInfoUseCase.hasDeposited(
                         trade.contractAddress,
                         walletRepository.credentials.address
                     )
@@ -62,12 +72,12 @@ class TradeInfoViewModel @Inject constructor(
                 }
 
                 val txReceipt = if (trade.userRole == UserRole.SELLER) {
-                    remoteRepository.sellerDeposit(
+                    depositUseCase.sellerDeposit(
                         trade.contractAddress,
                         trade.getSellerDepositAmount()
                     )
                 } else {
-                    remoteRepository.buyerDeposit(
+                    depositUseCase.buyerDeposit(
                         trade.contractAddress,
                         trade.getBuyerDepositAmount()
                     )
@@ -112,14 +122,14 @@ class TradeInfoViewModel @Inject constructor(
                     return@launch
                 }
 
-                if (remoteRepository.getContractStatus(trade.contractAddress) != ContractStatus.AWAITING_DEPOSIT) {
+                if (contractInfoUseCase.getContractStatus(trade.contractAddress) != ContractStatus.AWAITING_DEPOSIT) {
                     _uiState.emit(TradeInfoUIState.Error("Trade cannot be canceled"))
                     return@launch
                 }
 
                 _uiState.emit(TradeInfoUIState.ShowCancelingTradeProgress)
 
-                val txReceipt = remoteRepository.cancelTrade(trade.contractAddress)
+                val txReceipt = cancelTradeUseCase.cancelTrade(trade.contractAddress)
                 localRepository.deleteTrade(trade.contractAddress)
 
                 if (txReceipt == null) {
@@ -157,7 +167,7 @@ class TradeInfoViewModel @Inject constructor(
     fun settle() {
         viewModelScope.launch {
             try {
-                val contractStatus = remoteRepository.getContractStatus(trade.contractAddress)
+                val contractStatus = contractInfoUseCase.getContractStatus(trade.contractAddress)
 
                 if (contractStatus == ContractStatus.SETTLED) {
                     _uiState.emit(TradeInfoUIState.Error("The trade has already been settled"))
@@ -171,8 +181,8 @@ class TradeInfoViewModel @Inject constructor(
 
                 _uiState.emit(TradeInfoUIState.ShowRequestingSettleProgress)
 
-                val hasBuyerSettled = remoteRepository.hasBuyerSettled(trade.contractAddress)
-                val hasSellerSettled = remoteRepository.hasSellerSettled(trade.contractAddress)
+                val hasBuyerSettled = settleUseCase.hasBuyerSettled(trade.contractAddress)
+                val hasSellerSettled = settleUseCase.hasSellerSettled(trade.contractAddress)
 
                 val hasUserSettled = when (trade.userRole) {
                     UserRole.SELLER -> hasSellerSettled
@@ -185,14 +195,14 @@ class TradeInfoViewModel @Inject constructor(
                     return@launch
                 }
 
-                val txReceipt = remoteRepository.settle(trade.contractAddress)
+                val txReceipt = settleUseCase.settle(trade.contractAddress)
                 val gasCostEther =
                     WalletUtil.weiToEther(txReceipt.gasUsed.multiply(CustomGasProvider.GAS_PRICE))
                 val formattedGasCost = "$gasCostEther ${trade.networkTokenName}"
 
                 _uiState.emit(TradeInfoUIState.HideRequestingSettleProgress)
 
-                //Uses the counterparty's role to determine which message to display in dialog
+                //Uses the counter party's role to determine which message to display in dialog
                 when (trade.counterPartyRole) {
                     UserRole.SELLER -> {
                         val depositAmountMessage = trade.getFormattedBuyerDepositAmount()
@@ -259,7 +269,7 @@ class TradeInfoViewModel @Inject constructor(
                     _uiState.emit(TradeInfoUIState.ShowStepIndicatorProgress)
                 }
 
-                val contractStatus = remoteRepository.getContractStatus(trade.contractAddress)
+                val contractStatus = contractInfoUseCase.getContractStatus(trade.contractAddress)
 
                 if (trade.contractStatusId != contractStatus.id) {
                     val updatedTrade = trade.copy(contractStatusId = contractStatus.id)
@@ -267,11 +277,11 @@ class TradeInfoViewModel @Inject constructor(
                     _uiState.emit(TradeInfoUIState.SuccessUpdateTradeStatus(updatedTrade))
                 }
 
-                val hasUserDeposited = remoteRepository.hasDeposited(
+                val hasUserDeposited = contractInfoUseCase.hasDeposited(
                     trade.contractAddress, trade.userWalletAddress
                 )
 
-                val hasCounterPartyDeposited = remoteRepository.hasDeposited(
+                val hasCounterPartyDeposited = contractInfoUseCase.hasDeposited(
                     trade.contractAddress, trade.counterPartyWalletAddress
                 )
 
@@ -311,9 +321,9 @@ class TradeInfoViewModel @Inject constructor(
         if (contractStatus == ContractStatus.ITEM_INCORRECT || contractStatus == ContractStatus.SETTLED) {
             coroutineScope {
                 val hasSellerSettled =
-                    async { remoteRepository.hasSellerSettled(trade.contractAddress) }
+                    async { settleUseCase.hasSellerSettled(trade.contractAddress) }
                 val hasBuyerSettled =
-                    async { remoteRepository.hasBuyerSettled(trade.contractAddress) }
+                    async { settleUseCase.hasBuyerSettled(trade.contractAddress) }
 
                 _uiState.emit(TradeInfoUIState.UpdateSellerSettleStatus(hasSellerSettled.await()))
                 _uiState.emit(TradeInfoUIState.UpdateBuyerSettleStatus(hasBuyerSettled.await()))
@@ -503,7 +513,7 @@ class TradeInfoViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 _uiState.emit(TradeInfoUIState.ShowItemDeliveryProgress)
-                val txReceipt = remoteRepository.correctItemReceived(trade.contractAddress)
+                val txReceipt = updateItemStateUseCase.correctItemReceived(trade.contractAddress)
                 _uiState.emit(TradeInfoUIState.HideItemDeliveryProgress)
 
                 val gasCostWei = txReceipt.gasUsed.multiply(CustomGasProvider.GAS_PRICE)
@@ -529,7 +539,7 @@ class TradeInfoViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 _uiState.emit(TradeInfoUIState.ShowItemDeliveryProgress)
-                val txReceipt = remoteRepository.incorrectItemReceived(trade.contractAddress)
+                val txReceipt = updateItemStateUseCase.incorrectItemReceived(trade.contractAddress)
                 _uiState.emit(TradeInfoUIState.HideItemDeliveryProgress)
 
                 val gasCostWei = txReceipt.gasUsed.multiply(CustomGasProvider.GAS_PRICE)
@@ -554,7 +564,7 @@ class TradeInfoViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 _uiState.emit(TradeInfoUIState.ShowItemDeliveryProgress)
-                val txReceipt = remoteRepository.itemDelivered(trade.contractAddress)
+                val txReceipt = updateItemStateUseCase.itemDelivered(trade.contractAddress)
                 _uiState.emit(TradeInfoUIState.HideItemDeliveryProgress)
 
                 val gasCostWei = txReceipt.gasUsed.multiply(CustomGasProvider.GAS_PRICE)

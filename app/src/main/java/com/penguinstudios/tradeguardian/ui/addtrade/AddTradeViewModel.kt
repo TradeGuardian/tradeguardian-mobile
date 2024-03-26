@@ -8,6 +8,7 @@ import com.penguinstudios.tradeguardian.data.WalletRepository
 import com.penguinstudios.tradeguardian.data.model.Network
 import com.penguinstudios.tradeguardian.data.model.Trade
 import com.penguinstudios.tradeguardian.data.model.UserRole
+import com.penguinstudios.tradeguardian.data.usecase.ContractInfoUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -22,6 +23,7 @@ class AddTradeViewModel @Inject constructor(
     private val remoteRepository: RemoteRepository,
     private val walletRepository: WalletRepository,
     private val localRepository: LocalRepository,
+    private val contractInfoUseCase: ContractInfoUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableSharedFlow<AddTradeUIState>()
@@ -36,10 +38,10 @@ class AddTradeViewModel @Inject constructor(
 
                 _uiState.emit(AddTradeUIState.ShowProgressAddTrade)
 
-                val buyerAddress = remoteRepository.getBuyerAddress(contractAddress)
-                val sellerAddress = remoteRepository.getSellerAddress(contractAddress)
+                val buyerAddress = contractInfoUseCase.getBuyerAddress(contractAddress)
+                val sellerAddress = contractInfoUseCase.getSellerAddress(contractAddress)
 
-                if (!remoteRepository.isUserInvolvedInTrade(buyerAddress, sellerAddress)) {
+                if (!contractInfoUseCase.isUserInvolvedInTrade(buyerAddress, sellerAddress)) {
                     throw Exception("This trade does not belong to you")
                 }
 
@@ -71,10 +73,10 @@ class AddTradeViewModel @Inject constructor(
         sellerAddress: String
     ): Trade {
         val network = localRepository.getSelectedNetwork()
-        val contractStatusId = remoteRepository.getContractStatus(contractAddress)
-        val dateCreated = remoteRepository.getDateCreatedSeconds(contractAddress)
-        val itemPriceWei = remoteRepository.getItemPriceWei(contractAddress)
-        val description = remoteRepository.getDescription(contractAddress)
+        val contractStatusId = contractInfoUseCase.getContractStatus(contractAddress)
+        val dateCreated = contractInfoUseCase.getDateCreatedSeconds(contractAddress)
+        val itemPriceWei = contractInfoUseCase.getItemPriceWei(contractAddress)
+        val description = contractInfoUseCase.getDescription(contractAddress)
         val userWalletAddress = walletRepository.credentials.address
 
         val (userRole, counterPartyRole, counterPartyAddress) =

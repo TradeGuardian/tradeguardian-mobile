@@ -2,10 +2,10 @@ package com.penguinstudios.tradeguardian.ui.send
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.penguinstudios.tradeguardian.data.LocalRepository
 import com.penguinstudios.tradeguardian.data.RemoteRepository
 import com.penguinstudios.tradeguardian.data.WalletRepository
 import com.penguinstudios.tradeguardian.data.model.Network
+import com.penguinstudios.tradeguardian.data.usecase.SendUseCase
 import com.penguinstudios.tradeguardian.util.CustomGasProvider
 import com.penguinstudios.tradeguardian.util.WalletUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,8 +17,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SendViewModel @Inject constructor(
-    private val remoteRepository: RemoteRepository,
-    private val walletRepository: WalletRepository
+    private val walletRepository: WalletRepository,
+    private val sendUseCase: SendUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableSharedFlow<SendUIState>()
@@ -29,7 +29,7 @@ class SendViewModel @Inject constructor(
             try {
                 _uiState.emit(SendUIState.ShowProgressSend)
 
-                val txReceipt = remoteRepository.send(sendToAddress, amount)
+                val txReceipt = sendUseCase.send(sendToAddress, amount)
 
                 val calculateGasCostEther = txReceipt.gasUsed.multiply(CustomGasProvider.GAS_PRICE)
                 val formattedGasCost = WalletUtil.weiToEther(calculateGasCostEther)

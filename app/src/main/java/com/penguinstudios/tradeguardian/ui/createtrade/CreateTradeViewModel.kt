@@ -5,13 +5,15 @@ import androidx.lifecycle.viewModelScope
 import com.penguinstudios.tradeguardian.data.LocalRepository
 import com.penguinstudios.tradeguardian.data.RemoteRepository
 import com.penguinstudios.tradeguardian.data.WalletRepository
-import com.penguinstudios.tradeguardian.data.model.getFormattedGasCost
 import com.penguinstudios.tradeguardian.data.model.ContractDeployment
 import com.penguinstudios.tradeguardian.data.model.ContractStatus
 import com.penguinstudios.tradeguardian.data.model.ExchangeRateResponse
 import com.penguinstudios.tradeguardian.data.model.Network
 import com.penguinstudios.tradeguardian.data.model.Trade
 import com.penguinstudios.tradeguardian.data.model.UserRole
+import com.penguinstudios.tradeguardian.data.model.getFormattedGasCost
+import com.penguinstudios.tradeguardian.data.usecase.ContractInfoUseCase
+import com.penguinstudios.tradeguardian.data.usecase.DeployContractUseCase
 import com.penguinstudios.tradeguardian.util.Constants
 import com.penguinstudios.tradeguardian.util.WalletUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -31,7 +33,9 @@ import javax.inject.Inject
 class CreateTradeViewModel @Inject constructor(
     private val walletRepository: WalletRepository,
     private val remoteRepository: RemoteRepository,
-    private val localRepository: LocalRepository
+    private val localRepository: LocalRepository,
+    private val deployContractUseCase: DeployContractUseCase,
+    private val contractInfoUseCase: ContractInfoUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableSharedFlow<CreateTradeUIState>()
@@ -78,7 +82,7 @@ class CreateTradeViewModel @Inject constructor(
                 // Start all operations concurrently
                 val gasPriceDeferred = async { estimateGasPrice() }
                 val gasLimitDeferred = async { estimateDeployContractGasLimit(contractDeployment) }
-                val exchangeRateDeferred = async { getBnbUsdExchangeRate(contractDeployment.network) }
+                val exchangeRateDeferred = async { getUsdExchangeRate(contractDeployment.network) }
 
                 // Await all results
                 val gasPriceResult = gasPriceDeferred.await()
@@ -136,7 +140,7 @@ class CreateTradeViewModel @Inject constructor(
 
     private suspend fun estimateDeployContractGasLimit(contractDeployment: ContractDeployment): EthEstimateGas? {
         return try {
-            remoteRepository.estimateDeployContractGasLimit(contractDeployment)
+            deployContractUseCase.estimateDeployContractGasLimit(contractDeployment)
         } catch (e: TimeoutCancellationException) {
             Timber.e("Estimate gas limit timed out")
             null
@@ -146,14 +150,14 @@ class CreateTradeViewModel @Inject constructor(
         }
     }
 
-    private suspend fun getBnbUsdExchangeRate(selectedNetwork: Network): ExchangeRateResponse? {
+    private suspend fun getUsdExchangeRate(selectedNetwork: Network): ExchangeRateResponse? {
         return try {
-            remoteRepository.getBnbUsdExchangeRate(selectedNetwork)
+            remoteRepository.getUsdExchangeRate(selectedNetwork)
         } catch (e: TimeoutCancellationException) {
-            Timber.e("Get BNB/USD exchange rate timed out")
+            Timber.e("Get ${selectedNetwork.priceQuerySymbol} exchange rate timed out")
             null
         } catch (e: Exception) {
-            Timber.e(e, "Failed to get BNB/USD exchanged rate")
+            Timber.e(e, "Failed to get ${selectedNetwork.priceQuerySymbol} exchange rate")
             null
         }
     }
@@ -163,12 +167,12 @@ class CreateTradeViewModel @Inject constructor(
             try {
                 _uiState.emit(CreateTradeUIState.ShowDeployContractProgress)
 
-                val txReceipt = remoteRepository.deployContract(
+                val txReceipt = deployContractUseCase.deployContract(
                     contractDeployment, gasPrice, gasLimit
                 )
 
                 val contractAddress = txReceipt.contractAddress
-                val dateCreatedSeconds = remoteRepository.getDateCreatedSeconds(contractAddress)
+                val dateCreatedSeconds = contractInfoUseCase.getDateCreatedSeconds(contractAddress)
 
                 val trade = Trade.builder()
                     .network(contractDeployment.network)

@@ -7,6 +7,7 @@ import com.penguinstudios.tradeguardian.data.RemoteRepository
 import com.penguinstudios.tradeguardian.data.SharedPrefManager
 import com.penguinstudios.tradeguardian.data.WalletRepository
 import com.penguinstudios.tradeguardian.data.model.Network
+import com.penguinstudios.tradeguardian.data.usecase.WalletUseCase
 import com.penguinstudios.tradeguardian.util.WalletUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.TimeoutCancellationException
@@ -21,7 +22,8 @@ class WalletViewModel @Inject constructor(
     private val remoteRepository: RemoteRepository,
     private val walletRepository: WalletRepository,
     private val localRepository: LocalRepository,
-    private val sharedPrefManager: SharedPrefManager
+    private val sharedPrefManager: SharedPrefManager,
+    private val walletUseCase: WalletUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableSharedFlow<WalletUIState>()
@@ -43,7 +45,7 @@ class WalletViewModel @Inject constructor(
 
                 _uiState.emit(WalletUIState.ShowProgressWalletBalance)
 
-                val walletBalance = remoteRepository.getWalletBalance().balance
+                val walletBalance = walletUseCase.getWalletBalance().balance
 
                 val formattedWalletBalance =
                     WalletUtil.weiToNetworkToken(walletBalance, selectedNetwork)
