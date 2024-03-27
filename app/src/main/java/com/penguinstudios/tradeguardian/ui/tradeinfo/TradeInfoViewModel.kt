@@ -21,11 +21,10 @@ import com.penguinstudios.tradeguardian.data.model.network
 import com.penguinstudios.tradeguardian.data.model.networkTokenName
 import com.penguinstudios.tradeguardian.data.model.userRole
 import com.penguinstudios.tradeguardian.data.usecase.CancelTradeUseCase
-import com.penguinstudios.tradeguardian.data.usecase.DepositUseCase
 import com.penguinstudios.tradeguardian.data.usecase.ContractInfoUseCase
+import com.penguinstudios.tradeguardian.data.usecase.DepositUseCase
 import com.penguinstudios.tradeguardian.data.usecase.SettleUseCase
 import com.penguinstudios.tradeguardian.data.usecase.UpdateItemStateUseCase
-import com.penguinstudios.tradeguardian.util.CustomGasProvider
 import com.penguinstudios.tradeguardian.util.WalletUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
@@ -71,15 +70,31 @@ class TradeInfoViewModel @Inject constructor(
                     return@launch
                 }
 
+                val gasPrice = remoteRepository.estimateGasPrice().gasPrice
+
                 val txReceipt = if (trade.userRole == UserRole.SELLER) {
+                    val sellerDepositGasLimit = depositUseCase.estimateSellerDepositGasLimit(
+                        trade.contractAddress,
+                        trade.itemPriceWei.toBigInteger()
+                    ).amountUsed
+
                     depositUseCase.sellerDeposit(
                         trade.contractAddress,
-                        trade.getSellerDepositAmount()
+                        trade.getSellerDepositAmount(),
+                        gasPrice,
+                        sellerDepositGasLimit
                     )
                 } else {
+                    val buyerDepositGasLimit = depositUseCase.estimateBuyerDepositGasLimit(
+                        trade.contractAddress,
+                        trade.itemPriceWei.toBigInteger()
+                    ).amountUsed
+
                     depositUseCase.buyerDeposit(
                         trade.contractAddress,
-                        trade.getBuyerDepositAmount()
+                        trade.getBuyerDepositAmount(),
+                        gasPrice,
+                        buyerDepositGasLimit
                     )
                 }
 
@@ -92,7 +107,7 @@ class TradeInfoViewModel @Inject constructor(
                 _uiState.emit(TradeInfoUIState.HideProgressDeposit)
 
                 val gasCostEther =
-                    WalletUtil.weiToEther(txReceipt.gasUsed.multiply(CustomGasProvider.GAS_PRICE))
+                    WalletUtil.weiToEther(txReceipt.gasUsed.multiply(gasPrice))
                 val formattedGasCost = "$gasCostEther ${trade.networkTokenName}"
 
                 _uiState.emit(
@@ -129,14 +144,19 @@ class TradeInfoViewModel @Inject constructor(
 
                 _uiState.emit(TradeInfoUIState.ShowCancelingTradeProgress)
 
-                val txReceipt = cancelTradeUseCase.cancelTrade(trade.contractAddress)
+                val gasPrice = remoteRepository.estimateGasPrice().gasPrice
+                val gasLimit =
+                    cancelTradeUseCase.estimateCancelTradeGasLimit(trade.contractAddress).amountUsed
+
+                val txReceipt =
+                    cancelTradeUseCase.cancelTrade(trade.contractAddress, gasPrice, gasLimit)
                 localRepository.deleteTrade(trade.contractAddress)
 
                 if (txReceipt == null) {
                     _uiState.emit(TradeInfoUIState.SuccessDeleteTradeNoReceipt(trade.contractAddress))
                 } else {
                     val gasCostEther =
-                        WalletUtil.weiToEther(txReceipt.gasUsed.multiply(CustomGasProvider.GAS_PRICE))
+                        WalletUtil.weiToEther(txReceipt.gasUsed.multiply(gasPrice))
                     val formattedGasCost = "$gasCostEther ${trade.networkTokenName}"
 
                     val formattedAmountReturned = if (trade.userRole == UserRole.SELLER) {
@@ -195,9 +215,13 @@ class TradeInfoViewModel @Inject constructor(
                     return@launch
                 }
 
-                val txReceipt = settleUseCase.settle(trade.contractAddress)
+                val gasPrice = remoteRepository.estimateGasPrice().gasPrice
+                val gasLimit =
+                    settleUseCase.estimateSettleGasLimit(trade.contractAddress).amountUsed
+
+                val txReceipt = settleUseCase.settle(trade.contractAddress, gasPrice, gasLimit)
                 val gasCostEther =
-                    WalletUtil.weiToEther(txReceipt.gasUsed.multiply(CustomGasProvider.GAS_PRICE))
+                    WalletUtil.weiToEther(txReceipt.gasUsed.multiply(gasPrice))
                 val formattedGasCost = "$gasCostEther ${trade.networkTokenName}"
 
                 _uiState.emit(TradeInfoUIState.HideRequestingSettleProgress)
@@ -513,10 +537,21 @@ class TradeInfoViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 _uiState.emit(TradeInfoUIState.ShowItemDeliveryProgress)
-                val txReceipt = updateItemStateUseCase.correctItemReceived(trade.contractAddress)
+
+                val gasPrice = remoteRepository.estimateGasPrice().gasPrice
+
+                val gasLimit =
+                    updateItemStateUseCase.estimateCorrectItemGasLimit(trade.contractAddress).amountUsed
+
+                val txReceipt = updateItemStateUseCase.correctItemReceived(
+                    trade.contractAddress,
+                    gasPrice,
+                    gasLimit
+                )
+
                 _uiState.emit(TradeInfoUIState.HideItemDeliveryProgress)
 
-                val gasCostWei = txReceipt.gasUsed.multiply(CustomGasProvider.GAS_PRICE)
+                val gasCostWei = txReceipt.gasUsed.multiply(gasPrice)
 
                 _uiState.emit(
                     TradeInfoUIState.SuccessChangeDeliveryState(
@@ -539,10 +574,21 @@ class TradeInfoViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 _uiState.emit(TradeInfoUIState.ShowItemDeliveryProgress)
-                val txReceipt = updateItemStateUseCase.incorrectItemReceived(trade.contractAddress)
+
+                val gasPrice = remoteRepository.estimateGasPrice().gasPrice
+
+                val gasLimit =
+                    updateItemStateUseCase.estimateIncorrectItemGasLimit(trade.contractAddress).amountUsed
+
+                val txReceipt = updateItemStateUseCase.incorrectItemReceived(
+                    trade.contractAddress,
+                    gasPrice,
+                    gasLimit
+                )
+
                 _uiState.emit(TradeInfoUIState.HideItemDeliveryProgress)
 
-                val gasCostWei = txReceipt.gasUsed.multiply(CustomGasProvider.GAS_PRICE)
+                val gasCostWei = txReceipt.gasUsed.multiply(gasPrice)
 
                 _uiState.emit(
                     TradeInfoUIState.SuccessChangeDeliveryState(
@@ -564,10 +610,22 @@ class TradeInfoViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 _uiState.emit(TradeInfoUIState.ShowItemDeliveryProgress)
-                val txReceipt = updateItemStateUseCase.itemDelivered(trade.contractAddress)
+
+                val gasPrice = remoteRepository.estimateGasPrice().gasPrice
+
+                val gasLimit =
+                    updateItemStateUseCase.estimateItemDeliveredGasLimit(trade.contractAddress).amountUsed
+
+                val txReceipt =
+                    updateItemStateUseCase.itemDelivered(
+                        trade.contractAddress,
+                        gasPrice,
+                        gasLimit
+                    )
+
                 _uiState.emit(TradeInfoUIState.HideItemDeliveryProgress)
 
-                val gasCostWei = txReceipt.gasUsed.multiply(CustomGasProvider.GAS_PRICE)
+                val gasCostWei = txReceipt.gasUsed.multiply(gasPrice)
 
                 _uiState.emit(
                     TradeInfoUIState.SuccessChangeDeliveryState(

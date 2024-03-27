@@ -5,6 +5,7 @@ import com.penguinstudios.tradeguardian.data.RemoteRepository
 import com.penguinstudios.tradeguardian.data.WalletRepository
 import com.penguinstudios.tradeguardian.data.model.ContractDeployment
 import com.penguinstudios.tradeguardian.util.Constants
+import com.penguinstudios.tradeguardian.util.GasUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.withContext
@@ -28,13 +29,19 @@ class DeployContractUseCase @Inject constructor(
     suspend fun deployContract(
         contractDeployment: ContractDeployment,
         gasPrice: BigInteger,
-        gasLimit: BigInteger
+        originalGasLimit: BigInteger
     ): TransactionReceipt {
         return withContext(Dispatchers.IO) {
+            // Calculate the additional gas as a margin
+            val margin = GasUtils.calculateMargin(originalGasLimit, Constants.GAS_LIMIT_PERCENT_MARGIN)
+
+            // Add the margin to the original gas limit
+            val adjustedGasLimit = originalGasLimit.add(margin)
+
             Escrow.deploy(
                 remoteRepository.web3j,
                 walletRepository.credentials,
-                StaticGasProvider(gasPrice, gasLimit),
+                StaticGasProvider(gasPrice, adjustedGasLimit),
                 contractDeployment.feeRecipientAddress,
                 contractDeployment.sellerAddress,
                 contractDeployment.buyerAddress,

@@ -149,13 +149,13 @@
             app:srcCompat="@drawable/ic_open_link" />
 
         <TextView
+            android:id="@+id/tv_explorer_name"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_marginStart="6dp"
             android:fontFamily="@font/poppins_bold"
             android:paddingTop="19dp"
             android:paddingBottom="16dp"
-            android:text="@string/view_on_bsc_scan"
             android:textColor="@color/white"
             app:layout_constraintStart_toEndOf="@+id/iv_static_link" />
 

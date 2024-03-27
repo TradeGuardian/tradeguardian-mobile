@@ -54,9 +54,11 @@ class SuccessSendFragment(
         binding.tvSentToAddress.text = sendToAddress
         binding.tvAmount.text = formattedAmountSent
         binding.tvGasUsed.text = formattedGasUsed
+        val selectedNetwork = localRepository.getSelectedNetwork()
+        binding.tvExplorerName.text = "View on ${selectedNetwork.explorerName}"
 
         binding.btnViewExplorer.setOnClickListener {
-            val url = localRepository.getSelectedNetwork().explorerUrl + userWalletAddress
+            val url = selectedNetwork.explorerUrl + userWalletAddress
             val builder = CustomTabsIntent.Builder()
             val customTabsIntent = builder.build()
             customTabsIntent.launchUrl(requireContext(), Uri.parse(url))

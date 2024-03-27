@@ -47,14 +47,15 @@ class SuccessDeleteFragment(
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         binding.tvTxHash.text = txHash
         binding.tvContractAddress.text = contractAddress
         binding.tvAmountReturned.text = formattedAmountReturned
         binding.tvGasUsed.text = formattedGasUsed
+        val selectedNetwork = localRepository.getSelectedNetwork()
+        binding.tvExplorerName.text = "View on ${selectedNetwork.explorerName}"
 
         binding.btnViewExplorer.setOnClickListener {
-            val url = localRepository.getSelectedNetwork().explorerUrl + contractAddress
+            val url = selectedNetwork.explorerUrl + contractAddress
             val builder = CustomTabsIntent.Builder()
             val customTabsIntent = builder.build()
             customTabsIntent.launchUrl(requireContext(), Uri.parse(url))

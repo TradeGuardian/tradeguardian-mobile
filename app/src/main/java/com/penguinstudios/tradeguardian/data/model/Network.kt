@@ -10,7 +10,8 @@ enum class Network(
     val chainId: Int,
     val explorerUrl: String,
     val networkImage: Int,
-    val priceQuerySymbol: String
+    val priceQuerySymbol: String,
+    val explorerName: String
 ) {
     BOTANIX_TESTNET(
         0,
@@ -18,9 +19,10 @@ enum class Network(
         "Botanix Testnet",
         "BTC",
         3636,
-        "https://blockscout.botanixlabs.dev/",
+        "https://blockscout.botanixlabs.dev/address/",
         R.drawable.botanix,
-        "BTCUSDT"
+        "BTCUSDT",
+        "Blockscout"
     ),
     SEPOLIA_TESTNET(
         1,
@@ -30,7 +32,8 @@ enum class Network(
         11155111,
         "https://sepolia.etherscan.io/",
         R.drawable.ethereum,
-        "ETHUSDT"
+        "ETHUSDT",
+        "Etherscan"
     ),
     ETHEREUM_MAINNET(
         2,
@@ -40,7 +43,8 @@ enum class Network(
         1,
         "https://etherscan.io/",
         R.drawable.ethereum,
-        "ETHUSDT"
+        "ETHUSDT",
+        "Etherscan"
     );
 
     companion object {
