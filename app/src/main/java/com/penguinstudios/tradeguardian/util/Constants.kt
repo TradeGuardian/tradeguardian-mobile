@@ -13,6 +13,6 @@ object Constants {
     const val FEE_PERCENTAGE: Int = 1
     const val MILLIS_PER_SECOND: Int = 1000
     const val TWO_HOURS_IN_SECONDS: Int = 7200
-    const val DEFAULT_TIMEOUT_MILLIS: Long = 15000L
+    const val DEFAULT_TIMEOUT_MILLIS: Long = 30000L
     const val GAS_LIMIT_PERCENT_MARGIN: Int = 20
 }

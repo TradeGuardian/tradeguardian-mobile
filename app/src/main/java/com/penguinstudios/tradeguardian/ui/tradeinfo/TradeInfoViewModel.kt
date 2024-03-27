@@ -106,10 +106,11 @@ class TradeInfoViewModel @Inject constructor(
 
                 _uiState.emit(TradeInfoUIState.HideProgressDeposit)
 
-                val gasCostEther =
-                    WalletUtil.weiToEther(txReceipt.gasUsed.multiply(gasPrice))
-                val formattedGasCost = "$gasCostEther ${trade.networkTokenName}"
-
+                val formattedGasCost = WalletUtil.weiToNetworkToken(
+                    txReceipt.gasUsed.multiply(gasPrice),
+                    trade.network
+                )
+                
                 _uiState.emit(
                     TradeInfoUIState.SuccessDeposit(
                         //Deploying contract will return the TxReceipt with contract address
@@ -155,9 +156,10 @@ class TradeInfoViewModel @Inject constructor(
                 if (txReceipt == null) {
                     _uiState.emit(TradeInfoUIState.SuccessDeleteTradeNoReceipt(trade.contractAddress))
                 } else {
-                    val gasCostEther =
-                        WalletUtil.weiToEther(txReceipt.gasUsed.multiply(gasPrice))
-                    val formattedGasCost = "$gasCostEther ${trade.networkTokenName}"
+                    val formattedGasCost = WalletUtil.weiToNetworkToken(
+                        txReceipt.gasUsed.multiply(gasPrice),
+                        trade.network
+                    )
 
                     val formattedAmountReturned = if (trade.userRole == UserRole.SELLER) {
                         trade.getFormattedSellerDepositAmount()
@@ -220,9 +222,11 @@ class TradeInfoViewModel @Inject constructor(
                     settleUseCase.estimateSettleGasLimit(trade.contractAddress).amountUsed
 
                 val txReceipt = settleUseCase.settle(trade.contractAddress, gasPrice, gasLimit)
-                val gasCostEther =
-                    WalletUtil.weiToEther(txReceipt.gasUsed.multiply(gasPrice))
-                val formattedGasCost = "$gasCostEther ${trade.networkTokenName}"
+
+                val formattedGasCost = WalletUtil.weiToNetworkToken(
+                    txReceipt.gasUsed.multiply(gasPrice),
+                    trade.network
+                )
 
                 _uiState.emit(TradeInfoUIState.HideRequestingSettleProgress)
 
@@ -551,14 +555,17 @@ class TradeInfoViewModel @Inject constructor(
 
                 _uiState.emit(TradeInfoUIState.HideItemDeliveryProgress)
 
-                val gasCostWei = txReceipt.gasUsed.multiply(gasPrice)
+                val formattedGasCost = WalletUtil.weiToNetworkToken(
+                    txReceipt.gasUsed.multiply(gasPrice),
+                    trade.network
+                )
 
                 _uiState.emit(
                     TradeInfoUIState.SuccessChangeDeliveryState(
                         trade.contractAddress,
                         txReceipt.transactionHash,
                         ContractStatus.ITEM_RECEIVED.statusName,
-                        WalletUtil.weiToNetworkToken(gasCostWei, trade.network)
+                        formattedGasCost
                     )
                 )
             } catch (e: Exception) {
@@ -588,14 +595,17 @@ class TradeInfoViewModel @Inject constructor(
 
                 _uiState.emit(TradeInfoUIState.HideItemDeliveryProgress)
 
-                val gasCostWei = txReceipt.gasUsed.multiply(gasPrice)
+                val formattedGasCost = WalletUtil.weiToNetworkToken(
+                    txReceipt.gasUsed.multiply(gasPrice),
+                    trade.network
+                )
 
                 _uiState.emit(
                     TradeInfoUIState.SuccessChangeDeliveryState(
                         trade.contractAddress,
                         txReceipt.transactionHash,
                         ContractStatus.ITEM_INCORRECT.statusName,
-                        WalletUtil.weiToNetworkToken(gasCostWei, trade.network)
+                        formattedGasCost
                     )
                 )
             } catch (e: Exception) {
@@ -625,14 +635,17 @@ class TradeInfoViewModel @Inject constructor(
 
                 _uiState.emit(TradeInfoUIState.HideItemDeliveryProgress)
 
-                val gasCostWei = txReceipt.gasUsed.multiply(gasPrice)
+                val formattedGasCost = WalletUtil.weiToNetworkToken(
+                    txReceipt.gasUsed.multiply(gasPrice),
+                    trade.network
+                )
 
                 _uiState.emit(
                     TradeInfoUIState.SuccessChangeDeliveryState(
                         trade.contractAddress,
                         txReceipt.transactionHash,
                         ContractStatus.ITEM_SENT.statusName,
-                        WalletUtil.weiToNetworkToken(gasCostWei, trade.network)
+                        formattedGasCost
                     )
                 )
             } catch (e: Exception) {

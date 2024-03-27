@@ -29,7 +29,7 @@ object WalletUtil {
 
     fun weiToEther(balance: BigInteger): BigDecimal {
         val divisor = BigDecimal.TEN.pow(18)
-        return BigDecimal(balance).divide(divisor, 5, RoundingMode.HALF_UP)
+        return BigDecimal(balance).divide(divisor, 8, RoundingMode.HALF_UP)
     }
 
     fun formatToUSD(value: BigDecimal): String {
@@ -37,9 +37,11 @@ object WalletUtil {
         return format.format(value) + " USD"
     }
 
-    fun weiToNetworkToken(amountWei: BigInteger, network: Network) : String{
+    fun weiToNetworkToken(amountWei: BigInteger, network: Network): String {
         val divisor = BigDecimal.TEN.pow(18)
-        val ether = BigDecimal(amountWei).divide(divisor, 5, RoundingMode.HALF_UP)
+        val ether = BigDecimal(amountWei)
+            .divide(divisor, 8, RoundingMode.HALF_UP)
+            .toPlainString() //toPlainString prevents scientific notation
         return "$ether ${network.networkTokenName}"
     }
 }
